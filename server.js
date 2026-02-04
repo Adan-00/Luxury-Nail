@@ -1,189 +1,176 @@
-// server.js
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
-const cors = require("cors");
-const nodemailer = require("nodemailer");
-require("dotenv").config();
+// ================================
+// LUXURY NAIL BACKEND — server.js
+// Ready to paste ✅
+// ================================
 
+import express from "express";
+import cors from "cors";
+import fs from "fs";
+import path from "path";
+
+// --------------------
+// App setup
+// --------------------
 const app = express();
-const PORT = process.env.PORT || 8080;
+app.use(express.json({ limit: "1mb" }));
 
-// ✅ Middleware
-app.use(cors());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+// ✅ CORS (works for local + deployed)
+app.use(
+  cors({
+    origin: "*", // tighten later to your frontend domain
+    methods: ["GET", "POST", "OPTIONS"],
+  })
+);
 
-// ✅ IMPORTANT FIX:
-// server.js is ALREADY inside /nails
-// so DO NOT add "nails" again
-app.use(express.static(__dirname));
+// --------------------
+// Storage (bookings.json)
+// --------------------
+const BOOKINGS_FILE = path.join(process.cwd(), "bookings.json");
 
-// ✅ Serve homepage correctly
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
-
-// ==============================
-// BOOKINGS STORAGE
-// ==============================
-const BOOKINGS_FILE = path.join(__dirname, "bookings.json");
+function ensureBookingsFile() {
+  try {
+    if (!fs.existsSync(BOOKINGS_FILE)) {
+      fs.writeFileSync(BOOKINGS_FILE, "[]", "utf8");
+    }
+  } catch (e) {
+    console.error("❌ Could not create bookings.json:", e);
+  }
+}
 
 function readBookings() {
+  ensureBookingsFile();
   try {
-    if (!fs.existsSync(BOOKINGS_FILE)) return [];
     const raw = fs.readFileSync(BOOKINGS_FILE, "utf8");
-    return raw ? JSON.parse(raw) : [];
-  } catch {
+    const data = JSON.parse(raw || "[]");
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    console.error("❌ readBookings error:", e);
     return [];
   }
 }
 
-function saveBooking(b) {
-  const all = readBookings();
-  all.push(b);
-  fs.writeFileSync(BOOKINGS_FILE, JSON.stringify(all, null, 2), "utf8");
+function writeBookings(bookings) {
+  ensureBookingsFile();
+  fs.writeFileSync(BOOKINGS_FILE, JSON.stringify(bookings, null, 2), "utf8");
 }
 
-// ==============================
-// SLOT RULES
-// ==============================
-const SERVICE_DURATION = {
-  manicure: 45,
-  gel: 60,
-  acrylics: 75,
-  "nail-art": 30,
-};
-
-const DEFAULT_SLOTS = [
-  "10:00", "11:00", "12:00", "13:00",
-  "14:00", "15:00", "16:00", "17:00",
+// --------------------
+// Slot settings (24h format HH:mm)
+// --------------------
+const ALL_SLOTS = [
+  "10:00","10:30","11:00","11:30",
+  "12:00","12:30","13:00","13:30",
+  "14:00","14:30","15:00","15:30",
+  "16:00","16:30","17:00"
 ];
 
-// ==============================
-// AVAILABLE SLOTS API
-// ==============================
+// --------------------
+// Health check
+// --------------------
+app.get("/", (req, res) => {
+  res.json({ ok: true, message: "Luxury Nail Backend running ✅" });
+});
+
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true });
+});
+
+// --------------------
+// ✅ GET available slots for a date
+// /api/slots?date=YYYY-MM-DD
+// Returns: { slots: [...] }
+// --------------------
 app.get("/api/slots", (req, res) => {
-  const { date, service } = req.query;
+  const { date } = req.query;
 
-  if (!date || !service) {
-    return res.status(400).json({ error: "Missing date or service." });
-  }
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const reqDate = new Date(date + "T00:00:00");
-
-  if (isNaN(reqDate.getTime())) {
-    return res.status(400).json({ error: "Invalid date format." });
-  }
-
-  if (reqDate < today) {
-    return res.status(400).json({ error: "Cannot book past dates." });
-  }
+  if (!date) return res.status(400).json({ error: "date is required (YYYY-MM-DD)" });
 
   const bookings = readBookings();
   const bookedTimes = bookings
-    .filter((b) => b.date === date)
-    .map((b) => b.time);
+    .filter(b => b.date === date)
+    .map(b => b.time);
 
-  const available = DEFAULT_SLOTS.filter((t) => !bookedTimes.includes(t));
+  const slots = ALL_SLOTS.filter(t => !bookedTimes.includes(t));
 
-  res.json({
-    date,
-    service,
-    durationMins: SERVICE_DURATION[service] || 60,
-    available,
-  });
+  res.json({ slots });
 });
 
-// ==============================
-// EMAIL SETUP
-// ==============================
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
+// --------------------
+// ✅ GET all appointments (optional admin/debug)
+// --------------------
+app.get("/api/appointments", (req, res) => {
+  const bookings = readBookings();
+  res.json({ bookings });
 });
 
-// ==============================
-// BOOKING ENDPOINT
-// ==============================
-app.post("/api/appointments", async (req, res) => {
-  try {
-    const {
-      fullName,
-      clientEmail,
-      contactDetail,
-      service,
-      date,
-      time,
-      notes,
-    } = req.body;
+// --------------------
+// ✅ POST new appointment
+// Body expects:
+// { fullName, clientEmail, contactDetail, service, date, time, notes }
+// --------------------
+app.post("/api/appointments", (req, res) => {
+  const {
+    fullName = "",
+    clientEmail = "",
+    contactDetail = "",
+    service = "",
+    date = "",
+    time = "",
+    notes = ""
+  } = req.body || {};
 
-    if (!fullName || !clientEmail || !contactDetail || !service || !date || !time) {
-      return res.status(400).send("Missing required booking fields.");
-    }
-
-    const bookings = readBookings();
-    const exists = bookings.some((b) => b.date === date && b.time === time);
-    if (exists) {
-      return res.status(409).send("That time is already booked.");
-    }
-
-    const booking = {
-      id: Date.now(),
-      fullName,
-      clientEmail,
-      contactDetail,
-      service,
-      date,
-      time,
-      notes: notes || "",
-      createdAt: new Date().toISOString(),
-    };
-
-    saveBooking(booking);
-
-    const mailTo = process.env.BOOKING_TO || process.env.EMAIL_USER;
-
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || !mailTo) {
-      return res.status(200).send("Booking saved ✅ (email not configured)");
-    }
-
-    await transporter.sendMail({
-      from: `"Luxury Nail Studio" <${process.env.EMAIL_USER}>`,
-      to: mailTo,
-      replyTo: clientEmail,
-      subject: `New booking: ${service} — ${date} at ${time}`,
-      text: `
-New Booking 💅
-
-Name: ${fullName}
-Email: ${clientEmail}
-Contact: ${contactDetail}
-
-Service: ${service}
-Date: ${date}
-Time: ${time}
-
-Notes:
-${notes || "(none)"}
-
-Booking ID: ${booking.id}
-      `.trim(),
-    });
-
-    res.status(200).send("Booking saved + email sent ✅");
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Server error.");
+  if (!date || !time) {
+    return res.status(400).json({ error: "date and time are required" });
   }
+
+  // enforce HH:mm format (basic check)
+  if (!/^\d{2}:\d{2}$/.test(time)) {
+    return res.status(400).json({ error: "time must be in HH:mm (e.g. 15:00)" });
+  }
+
+  // must be a valid slot time
+  if (!ALL_SLOTS.includes(time)) {
+    return res.status(400).json({ error: "time is not a valid slot" });
+  }
+
+  const bookings = readBookings();
+
+  // prevent double-booking
+  const alreadyBooked = bookings.some(b => b.date === date && b.time === time);
+  if (alreadyBooked) {
+    return res.status(409).json({ error: "That slot is already booked" });
+  }
+
+  const newBooking = {
+    id: Date.now(),
+    fullName,
+    clientEmail,
+    contactDetail,
+    service,
+    date,
+    time,
+    notes,
+    createdAt: new Date().toISOString()
+  };
+
+  bookings.push(newBooking);
+
+  try {
+    writeBookings(bookings);
+  } catch (e) {
+    console.error("❌ writeBookings error:", e);
+    return res.status(500).json({ error: "Failed to save booking" });
+  }
+
+  res.status(201).json({ ok: true, booking: newBooking });
 });
 
-// ==============================
+// --------------------
+// Server start (Render compatible)
+// --------------------
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`📄 bookings file: ${BOOKINGS_FILE}`);
 });
+
