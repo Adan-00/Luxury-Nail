@@ -348,6 +348,38 @@ html[data-theme="light"] .button:hover{
   transform: translateY(-6px);
   box-shadow: var(--shadow-strong);
 }
+/* ✅ Make the date picker icon visible + clickable */
+.booking-panel input[type="date"]{
+  padding-right: 44px;              /* space for the calendar icon */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Chrome / Edge / Safari calendar icon */
+.booking-panel input[type="date"]::-webkit-calendar-picker-indicator{
+  opacity: 1;
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  padding: 6px;
+  border-radius: 10px;
+}
+
+/* Light mode: keep it normal */
+:root .booking-panel input[type="date"]::-webkit-calendar-picker-indicator{
+  filter: none;
+}
+
+/* Dark mode: invert so it turns white */
+html[data-theme="dark"] .booking-panel input[type="date"]::-webkit-calendar-picker-indicator{
+  filter: invert(1);
+}
+@media (prefers-color-scheme: dark){
+  html:not([data-theme="light"]) .booking-panel input[type="date"]::-webkit-calendar-picker-indicator{
+    filter: invert(1);
+  }
+}
+
 
 /* ---------- Reveal animations ---------- */
 .reveal{
@@ -1668,3 +1700,4 @@ html[data-theme="light"] .auth-tab{ background: rgba(11,11,16,0.04); }
 @media (max-width: 640px){
   .footer-bottom{ justify-content: center; text-align: center; }
 }
+
