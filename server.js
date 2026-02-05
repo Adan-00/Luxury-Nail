@@ -1,6 +1,6 @@
 // ================================
 // LUXURY NAIL BACKEND — server.js
-// Ready to paste ✅
+// FULL UPDATED — Ready to paste ✅
 // ================================
 
 import express from "express";
@@ -19,8 +19,12 @@ app.use(
   cors({
     origin: "*", // tighten later to your frontend domain
     methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type"],
   })
 );
+
+// ✅ Ensure preflight works everywhere
+app.options("*", cors());
 
 // --------------------
 // Storage (bookings.json)
@@ -83,7 +87,9 @@ app.get("/api/health", (req, res) => {
 app.get("/api/slots", (req, res) => {
   const { date } = req.query;
 
-  if (!date) return res.status(400).json({ error: "date is required (YYYY-MM-DD)" });
+  if (!date) {
+    return res.status(400).json({ error: "date is required (YYYY-MM-DD)" });
+  }
 
   const bookings = readBookings();
   const bookedTimes = bookings
@@ -105,37 +111,66 @@ app.get("/api/appointments", (req, res) => {
 
 // --------------------
 // ✅ POST new appointment
-// Body expects:
-// { fullName, clientEmail, contactDetail, service, date, time, notes }
+// Accepts multiple field names from frontend.
+// Requires: service + date + time
 // --------------------
 app.post("/api/appointments", (req, res) => {
-  const {
-    fullName = "",
-    clientEmail = "",
-    contactDetail = "",
-    service = "",
-    date = "",
-    time = "",
-    notes = ""
-  } = req.body || {};
+  const body = req.body || {};
 
-  if (!date || !time) {
-    return res.status(400).json({ error: "date and time are required" });
+  // ✅ accept multiple frontend field names
+  const fullName =
+    body.fullName ?? body.name ?? body.clientName ?? "";
+
+  const clientEmail =
+    body.clientEmail ?? body.email ?? body.userEmail ?? "";
+
+  const contactDetail =
+    body.contactDetail ?? body.phone ?? body.contact ?? body.mobile ?? "";
+
+  const service =
+    body.service ?? body.serviceName ?? body.selectedService ?? "";
+
+  const date =
+    body.date ?? body.selectedDate ?? body.bookingDate ?? "";
+
+  const time =
+    body.time ?? body.slot ?? body.selectedTime ?? "";
+
+  const notes =
+    body.notes ?? body.message ?? "";
+
+  // ✅ Require these (so your frontend message matches)
+  if (!service || !date || !time) {
+    return res.status(400).json({
+      error: "Missing required fields",
+      missing: {
+        service: !service,
+        date: !date,
+        time: !time
+      },
+      receivedKeys: Object.keys(body),
+      receivedBody: body
+    });
   }
 
-  // enforce HH:mm format (basic check)
+  // ✅ validate date format
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return res.status(400).json({ error: "date must be YYYY-MM-DD" });
+  }
+
+  // ✅ validate time format
   if (!/^\d{2}:\d{2}$/.test(time)) {
     return res.status(400).json({ error: "time must be in HH:mm (e.g. 15:00)" });
   }
 
-  // must be a valid slot time
+  // ✅ must be a valid slot time
   if (!ALL_SLOTS.includes(time)) {
     return res.status(400).json({ error: "time is not a valid slot" });
   }
 
   const bookings = readBookings();
 
-  // prevent double-booking
+  // ✅ prevent double-booking
   const alreadyBooked = bookings.some(b => b.date === date && b.time === time);
   if (alreadyBooked) {
     return res.status(409).json({ error: "That slot is already booked" });
