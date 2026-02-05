@@ -380,6 +380,9 @@ html[data-theme="dark"] .booking-panel input[type="date"]::-webkit-calendar-pick
   }
 }
 
+.booking-panel input[type="date"]{
+  background-color: transparent;
+}
 
 /* ---------- Reveal animations ---------- */
 .reveal{
@@ -1700,4 +1703,5 @@ html[data-theme="light"] .auth-tab{ background: rgba(11,11,16,0.04); }
 @media (max-width: 640px){
   .footer-bottom{ justify-content: center; text-align: center; }
 }
+
 
