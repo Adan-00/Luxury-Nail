@@ -17,7 +17,7 @@
   <!-- External CSS -->
   <link rel="stylesheet" href="./styles.css">
 
-  <!-- ✅ Minimal FIXES (Dropdown + Reviews Dark Patch + ✅ Service Modal) -->
+  <!-- ✅ Minimal FIXES (Dropdown + Reviews Dark Patch + ✅ Modals) -->
   <style>
     @media (prefers-color-scheme: dark){
       #reviews.section{
@@ -71,6 +71,7 @@
       box-shadow: 0 18px 44px rgba(17,24,39,0.14);
       z-index: 9999;
 
+      /* Vertical stack */
       flex-direction: column;
       gap: 6px;
       align-items: stretch;
@@ -199,6 +200,110 @@
       .service-modal__desc{ color: #f9fafb; }
       .service-modal__more{ color: rgba(249,250,251,0.78); }
     }
+
+    /* =========================
+       ✅ INFO MODAL (Guide/Policies/Aftercare cards)
+       ========================= */
+    .info-modal{
+      position: fixed;
+      inset: 0;
+      display: none;
+      z-index: 99998;
+    }
+    .info-modal.is-open{ display:block; }
+
+    .info-modal__backdrop{
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 10, 10, 0.55);
+      backdrop-filter: blur(6px);
+    }
+
+    .info-modal__panel{
+      position: relative;
+      width: min(720px, calc(100% - 28px));
+      margin: 10vh auto;
+      background: var(--surface, #fff);
+      border-radius: 22px;
+      border: 1px solid rgba(17,24,39,0.10);
+      box-shadow: 0 24px 70px rgba(0,0,0,0.25);
+      overflow: hidden;
+      transform: translateY(10px);
+      animation: serviceModalIn .18s ease-out forwards;
+    }
+
+    .info-modal__close{
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.10);
+      background: rgba(255,255,255,0.9);
+      font-size: 26px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .info-modal__body{
+      padding: 18px;
+    }
+
+    .info-modal__pill{
+      display: inline-block;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(200,162,122,0.18);
+      margin-bottom: 10px;
+    }
+
+    .info-modal__title{
+      font-family: var(--font-display, "Playfair Display", serif);
+      margin: 0 0 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .info-modal__desc{
+      margin: 0 0 12px;
+      color: rgba(17,24,39,0.78);
+      line-height: 1.6;
+    }
+
+    .info-modal__list{
+      margin: 0;
+      padding-left: 18px;
+      color: rgba(17,24,39,0.78);
+      line-height: 1.7;
+    }
+
+    .info-modal__actions{
+      margin-top: 16px;
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    @media (prefers-color-scheme: dark){
+      .info-modal__panel{
+        background: rgba(15, 23, 42, 0.92);
+        border: 1px solid rgba(255,255,255,0.12);
+      }
+      .info-modal__close{
+        background: rgba(255,255,255,0.10);
+        border-color: rgba(255,255,255,0.14);
+        color: #f9fafb;
+      }
+      .info-modal__desc, .info-modal__list{ color: rgba(249,250,251,0.78); }
+      .info-modal__title{ color: #f9fafb; }
+    }
+
+    /* Make info cards feel clickable */
+    .info-card{ cursor: pointer; }
+    .info-card:focus{ outline: 2px solid rgba(200,162,122,0.7); outline-offset: 4px; border-radius: 18px; }
   </style>
 </head>
 
@@ -280,7 +385,9 @@
 
   <main id="main">
 
-    <!-- HERO -->
+    <!-- =========================
+         HERO
+         ========================= -->
     <header class="hero">
       <div class="container hero-grid">
         <div class="reveal" data-reveal>
@@ -305,7 +412,9 @@
       </div>
     </header>
 
-    <!-- TRUST -->
+    <!-- =========================
+         TRUST
+         ========================= -->
     <section class="section" style="padding-top:40px;">
       <div class="container trust-grid">
         <div class="card trust-item reveal" data-reveal data-delay="0">
@@ -327,7 +436,9 @@
       </div>
     </section>
 
-    <!-- SERVICES -->
+    <!-- =========================
+         SERVICES (✅ Cards now open modal)
+         ========================= -->
     <section class="section" id="services">
       <div class="container">
         <h2 class="section-title" data-reveal>Services & pricing</h2>
@@ -399,10 +510,9 @@
       </div>
     </section>
 
-    <!-- (rest of your page stays the same) -->
-    <!-- ✅ I kept everything else identical to what you pasted -->
-
-    <!-- SERVICE GUIDE -->
+    <!-- =========================
+         SERVICE GUIDE (✅ Cards open info modal)
+         ========================= -->
     <section class="service-guide" id="service-guide">
       <div class="service-guide__inner">
         <header class="service-guide__header">
@@ -414,7 +524,11 @@
         </header>
 
         <div class="service-guide__grid">
-          <div class="service-guide__card">
+          <div class="service-guide__card info-card" tabindex="0" role="button"
+            data-info-pill="Guide"
+            data-info-title="Gel Polish"
+            data-info-desc="Ideal if you want something neat, glossy, and low-maintenance."
+            data-info-list="Natural nails|Short-term wear|Clean & simple look">
             <h3>Gel Polish</h3>
             <p class="service-guide__for">Best for:</p>
             <ul>
@@ -425,7 +539,11 @@
             <p class="service-guide__note">Ideal if you want something neat, glossy, and low-maintenance.</p>
           </div>
 
-          <div class="service-guide__card">
+          <div class="service-guide__card info-card" tabindex="0" role="button"
+            data-info-pill="Guide"
+            data-info-title="BIAB / Builder Gel"
+            data-info-desc="Perfect for strength without added length."
+            data-info-list="Weak or bendy nails|Natural but strong look|Growing your own nails">
             <h3>BIAB / Builder Gel</h3>
             <p class="service-guide__for">Best for:</p>
             <ul>
@@ -436,7 +554,11 @@
             <p class="service-guide__note">Perfect for strength without added length.</p>
           </div>
 
-          <div class="service-guide__card">
+          <div class="service-guide__card info-card" tabindex="0" role="button"
+            data-info-pill="Guide"
+            data-info-title="Acrylic Full Set"
+            data-info-desc="Great if you want long-lasting nails with custom shapes."
+            data-info-list="Added length|Durability|Statement nails">
             <h3>Acrylic Full Set</h3>
             <p class="service-guide__for">Best for:</p>
             <ul>
@@ -447,7 +569,11 @@
             <p class="service-guide__note">Great if you want long-lasting nails with custom shapes.</p>
           </div>
 
-          <div class="service-guide__card">
+          <div class="service-guide__card info-card" tabindex="0" role="button"
+            data-info-pill="Guide"
+            data-info-title="Nail Art / Custom Design"
+            data-info-desc="Ideal for birthdays, events, or when you want extra detail."
+            data-info-list="Special occasions|Bold designs|Personalised sets">
             <h3>Nail Art / Custom Design</h3>
             <p class="service-guide__for">Best for:</p>
             <ul>
@@ -465,7 +591,466 @@
       </div>
     </section>
 
-    <!-- BOOKING MODAL -->
+    <!-- =========================
+         GALLERY
+         ========================= -->
+    <section class="section" id="gallery">
+      <div class="container">
+        <h2 class="section-title reveal" data-reveal>Gallery</h2>
+        <p class="section-subtitle reveal" data-reveal data-delay="80">Click any set to view it bigger.</p>
+
+        <div class="portfolio-grid">
+          <div class="portfolio-item reveal" data-reveal tabindex="0" role="button"
+               data-gallery data-src="./images/g1.png" data-title="Butterfly Set" data-alt="Butterfly nails">
+            <img src="./images/g1.png" alt="Butterfly nails" />
+            <div class="portfolio-cap"><span>Butterfly Set</span><span>✦</span></div>
+          </div>
+
+          <div class="portfolio-item reveal" data-reveal data-delay="60" tabindex="0" role="button"
+               data-gallery data-src="./images/g2.png" data-title="Gold Floral" data-alt="Gold flower nails">
+            <img src="./images/g2.png" alt="Gold flower nails" />
+            <div class="portfolio-cap"><span>Gold Floral</span><span>✦</span></div>
+          </div>
+
+          <div class="portfolio-item reveal" data-reveal data-delay="120" tabindex="0" role="button"
+               data-gallery data-src="./images/g3.png" data-title="Smiley Art" data-alt="Smiley nail art">
+            <img src="./images/g3.png" alt="Smiley nail art" />
+            <div class="portfolio-cap"><span>Smiley Art</span><span>✦</span></div>
+          </div>
+
+          <div class="portfolio-item reveal" data-reveal data-delay="180" tabindex="0" role="button"
+               data-gallery data-src="./images/g4.png" data-title="Soft French" data-alt="Soft french nails">
+            <img src="./images/g4.png" alt="Soft french nails" />
+            <div class="portfolio-cap"><span>Soft French</span><span>✦</span></div>
+          </div>
+
+          <div class="portfolio-item reveal" data-reveal data-delay="240" tabindex="0" role="button"
+               data-gallery data-src="./images/g5.png" data-title="Citrus Pop" data-alt="Citrus nails">
+            <img src="./images/g5.png" alt="Citrus nails" />
+            <div class="portfolio-cap"><span>Citrus Pop</span><span>✦</span></div>
+          </div>
+
+          <div class="portfolio-item reveal" data-reveal data-delay="300" tabindex="0" role="button"
+               data-gallery data-src="./images/g6.png" data-title="Tortoise Luxe" data-alt="Tortoise print nails">
+            <img src="./images/g6.png" alt="Tortoise print nails" />
+            <div class="portfolio-cap"><span>Tortoise Luxe</span><span>✦</span></div>
+          </div>
+
+          <div class="portfolio-item reveal" data-reveal data-delay="360" tabindex="0" role="button"
+               data-gallery data-src="./images/hero.png" data-title="Signature Set" data-alt="Signature nails close-up">
+            <img src="./images/hero.png" alt="Signature nails close-up" />
+            <div class="portfolio-cap"><span>Signature</span><span>✦</span></div>
+          </div>
+
+          <div class="portfolio-item reveal" data-reveal data-delay="420" tabindex="0" role="button"
+               data-gallery data-src="./images/g2.png" data-title="Gold Floral (Alt)" data-alt="Gold flower nails alternate">
+            <img src="./images/g2.png" alt="Gold flower nails alternate" />
+            <div class="portfolio-cap"><span>Gold Floral</span><span>✦</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         REVIEWS
+         ========================= -->
+    <section class="section" id="reviews">
+      <div class="container">
+        <h2 class="section-title reveal" data-reveal>Client reviews</h2>
+        <p class="section-subtitle reveal" data-reveal data-delay="80">Real feedback from regulars who love clean prep and lasting wear.</p>
+
+        <div class="reviews-grid">
+          <article class="card reveal" data-reveal>
+            <p>“Super neat cuticle work and the gel lasted 3+ weeks. The vibe is so calm.”</p>
+            <div class="review-name">Amelia</div>
+            <div class="review-location">London</div>
+          </article>
+
+          <article class="card reveal" data-reveal data-delay="100">
+            <p>“Loved the shaping. She listened, matched inspo perfectly, and I was out on time.”</p>
+            <div class="review-name">Sana</div>
+            <div class="review-location">Stratford</div>
+          </article>
+
+          <article class="card reveal" data-reveal data-delay="200">
+            <p>“Best French set I’ve had. Clean, crisp, and no lifting. Booking was easy.”</p>
+            <div class="review-name">Nadia</div>
+            <div class="review-location">Canary Wharf</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         PROCESS
+         ========================= -->
+    <section class="section" id="process">
+      <div class="container">
+        <h2 class="section-title reveal" data-reveal>Booking process</h2>
+        <p class="section-subtitle reveal" data-reveal data-delay="80">Book in minutes with a streamlined flow designed for busy clients.</p>
+
+        <div class="process-grid">
+          <div class="card process-step reveal" data-reveal>
+            <div class="step-number">1</div>
+            <div><h4>Choose service</h4><p>Select your manicure, gel, or acrylic package.</p></div>
+          </div>
+          <div class="card process-step reveal" data-reveal data-delay="120">
+            <div class="step-number">2</div>
+            <div><h4>Pick date & time</h4><p>Choose an available slot and submit your request.</p></div>
+          </div>
+          <div class="card process-step reveal" data-reveal data-delay="240">
+            <div class="step-number">3</div>
+            <div><h4>We confirm</h4><p>You’ll receive a confirmation message once your booking is reviewed.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         POLICIES (✅ Cards open info modal)
+         ========================= -->
+    <section class="section" id="policies">
+      <div class="container">
+        <h2 class="section-title reveal" data-reveal>Policies</h2>
+        <p class="section-subtitle reveal" data-reveal data-delay="80">Clear expectations = smooth appointments for everyone.</p>
+
+        <div class="why-grid">
+          <div class="card reveal info-card" data-reveal tabindex="0" role="button"
+            data-info-pill="Policies"
+            data-info-title="Cancellation"
+            data-info-desc="Please give 24 hours notice. Late cancellations may lose deposit."
+            data-info-list="Cancel at least 24 hours before|Late cancellations may lose deposit|Message ASAP if anything changes">
+            <h3>Cancellation</h3>
+            <p class="tiny">Please give 24 hours notice. Late cancellations may lose deposit.</p>
+          </div>
+          <div class="card reveal info-card" data-reveal data-delay="120" tabindex="0" role="button"
+            data-info-pill="Policies"
+            data-info-title="Late arrivals"
+            data-info-desc="10+ minutes late may shorten the service or require rescheduling."
+            data-info-list="10+ minutes late may shorten service|May need reschedule if fully booked|Please message if running late">
+            <h3>Late arrivals</h3>
+            <p class="tiny">10+ minutes late may shorten the service or require rescheduling.</p>
+          </div>
+          <div class="card reveal info-card" data-reveal data-delay="240" tabindex="0" role="button"
+            data-info-pill="Policies"
+            data-info-title="Deposits"
+            data-info-desc="A small deposit may be requested to secure peak-time slots."
+            data-info-list="Secures your slot|Helps prevent no-shows|Goes toward your total (when applicable)">
+            <h3>Deposits</h3>
+            <p class="tiny">A small deposit may be requested to secure peak-time slots.</p>
+          </div>
+          <div class="card reveal info-card" data-reveal data-delay="360" tabindex="0" role="button"
+            data-info-pill="Policies"
+            data-info-title="Repairs"
+            data-info-desc="Contact within 48 hours for a fix if there’s an issue."
+            data-info-list="Contact within 48 hours|Send a clear photo/video|We’ll advise the quickest fix">
+            <h3>Repairs</h3>
+            <p class="tiny">Contact within 48 hours for a fix if there’s an issue.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         ABOUT
+         ========================= -->
+    <section class="about" id="about">
+      <div class="about__inner">
+        <div class="about__content">
+          <p class="about__eyebrow">About</p>
+          <h2 class="about__title">Luxury Nail Studio</h2>
+          <p class="about__lead">
+            A calm, clean, luxury space where your nails are treated with care — and your style is taken seriously.
+          </p>
+
+          <div class="about__points">
+            <div class="about__point">
+              <h3>Experience & precision</h3>
+              <p>Every set is shaped neatly, finished smoothly, and designed to last — with proper prep and detail.</p>
+            </div>
+
+            <div class="about__point">
+              <h3>Your vibe, your style</h3>
+              <p>From soft nudes to statement nail art, we tailor every set to your inspo and your lifestyle.</p>
+            </div>
+
+            <div class="about__point">
+              <h3>Clean & professional</h3>
+              <p>Hygiene comes first — sanitised tools, a tidy setup, and a comfortable appointment every time.</p>
+            </div>
+          </div>
+
+          <div class="about__cta">
+            <a class="button" href="#booking-form">Book an appointment</a>
+            <a class="button button-outline" href="#gallery">View my work</a>
+          </div>
+        </div>
+
+        <div class="about__card" aria-label="Studio highlights">
+          <div class="about__cardTop">
+            <p class="about__badge">Studio Highlights</p>
+            <p class="about__mini">What you can expect</p>
+          </div>
+
+          <ul class="about__list">
+            <li><span class="about__dot" aria-hidden="true"></span>Long-lasting sets (with proper prep)</li>
+            <li><span class="about__dot" aria-hidden="true"></span>Luxury finishes + clean shaping</li>
+            <li><span class="about__dot" aria-hidden="true"></span>Friendly, calm appointment vibe</li>
+            <li><span class="about__dot" aria-hidden="true"></span>Custom designs to match your inspo</li>
+          </ul>
+
+          <div class="about__note">
+            <p><strong>Tip:</strong> Send your inspo photo before your appointment for the best match.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         AFTERCARE (✅ Cards open info modal)
+         ========================= -->
+    <section class="aftercare" id="aftercare">
+      <div class="aftercare__inner">
+        <header class="aftercare__header">
+          <p class="aftercare__eyebrow">Aftercare</p>
+          <h2 class="aftercare__title">How to care for your nails</h2>
+          <p class="aftercare__subtitle">
+            Following these simple tips will help your nails last longer and stay looking fresh.
+          </p>
+        </header>
+
+        <div class="aftercare__grid">
+          <div class="aftercare__card info-card" tabindex="0" role="button"
+            data-info-pill="Aftercare"
+            data-info-title="Don’t use nails as tools"
+            data-info-desc="Avoid opening cans, scratching surfaces, or picking at hard objects with your nails."
+            data-info-list="Use a key or tool instead|Avoid pulling tabs/labels|Prevents lifting + breaks">
+            <span class="aftercare__icon" aria-hidden="true">✦</span>
+            <h3>Don’t use nails as tools</h3>
+            <p>Avoid opening cans, scratching surfaces, or picking at hard objects with your nails.</p>
+          </div>
+
+          <div class="aftercare__card info-card" tabindex="0" role="button"
+            data-info-pill="Aftercare"
+            data-info-title="Wear gloves for cleaning"
+            data-info-desc="Harsh chemicals and hot water can weaken your nails and cause lifting."
+            data-info-list="Gloves protect from chemicals|Hot water can loosen product|Helps sets last longer">
+            <span class="aftercare__icon" aria-hidden="true">✦</span>
+            <h3>Wear gloves for cleaning</h3>
+            <p>Harsh chemicals and hot water can weaken your nails and cause lifting.</p>
+          </div>
+
+          <div class="aftercare__card info-card" tabindex="0" role="button"
+            data-info-pill="Aftercare"
+            data-info-title="Use cuticle oil daily"
+            data-info-desc="Applying cuticle oil keeps your nails flexible, healthy, and glossy."
+            data-info-list="Use daily (best at night)|Massage into cuticles|Hydration = better retention">
+            <span class="aftercare__icon" aria-hidden="true">✦</span>
+            <h3>Use cuticle oil daily</h3>
+            <p>Applying cuticle oil keeps your nails flexible, healthy, and glossy.</p>
+          </div>
+
+          <div class="aftercare__card info-card" tabindex="0" role="button"
+            data-info-pill="Aftercare"
+            data-info-title="Book infills on time"
+            data-info-desc="We recommend infills every 2–3 weeks to maintain structure and prevent breakage."
+            data-info-list="Infills every 2–3 weeks|Prevents stress on nails|Keeps shape + strength">
+            <span class="aftercare__icon" aria-hidden="true">✦</span>
+            <h3>Book infills on time</h3>
+            <p>We recommend infills every 2–3 weeks to maintain structure and prevent breakage.</p>
+          </div>
+        </div>
+
+        <div class="aftercare__note">
+          <p><strong>Reminder:</strong> Proper aftercare = longer-lasting nails and better results.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         FAQ
+         ========================= -->
+    <section class="faq" id="faq">
+      <div class="faq__inner">
+        <header class="faq__header">
+          <p class="faq__eyebrow">FAQs</p>
+          <h2 class="faq__title">Quick answers before you book</h2>
+          <p class="faq__subtitle">If you still have questions, message us — we’re happy to help.</p>
+        </header>
+
+        <div class="faq__list">
+          <details class="faq__item">
+            <summary class="faq__question">
+              How long do nails last?
+              <span class="faq__icon" aria-hidden="true"></span>
+            </summary>
+            <div class="faq__answer">
+              <p>Most sets last <strong>2–4 weeks</strong> depending on your nail growth, aftercare, and lifestyle.</p>
+            </div>
+          </details>
+
+          <details class="faq__item">
+            <summary class="faq__question">
+              Do you do infills?
+              <span class="faq__icon" aria-hidden="true"></span>
+            </summary>
+            <div class="faq__answer">
+              <p>Yes, we offer infills for returning clients. Book within <strong>2–3 weeks</strong> for best retention.</p>
+            </div>
+          </details>
+
+          <details class="faq__item">
+            <summary class="faq__question">
+              Are deposits required?
+              <span class="faq__icon" aria-hidden="true"></span>
+            </summary>
+            <div class="faq__answer">
+              <p>Yes — a small deposit secures your slot and goes toward your total.</p>
+            </div>
+          </details>
+
+          <details class="faq__item">
+            <summary class="faq__question">
+              What if I’m late to my appointment?
+              <span class="faq__icon" aria-hidden="true"></span>
+            </summary>
+            <div class="faq__answer">
+              <p>Please message us if you’re running late. We may need to shorten the service or reschedule.</p>
+            </div>
+          </details>
+
+          <details class="faq__item">
+            <summary class="faq__question">
+              How do I prepare for my appointment?
+              <span class="faq__icon" aria-hidden="true"></span>
+            </summary>
+            <div class="faq__answer">
+              <p>Arrive with clean hands, avoid oils/lotions right before, and send your inspo photo in advance.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         FUN FACTS SLIDER
+         ========================= -->
+    <section class="slider" id="slider" aria-label="Nail fun facts slideshow">
+      <div class="slider__inner">
+        <header class="slider__header">
+          <p class="slider__eyebrow">Fun Facts</p>
+          <h2 class="slider__title">Nail art tips & fun facts</h2>
+          <p class="slider__subtitle">Little things that make a BIG difference.</p>
+        </header>
+
+        <div class="slider__wrap" data-slider>
+          <div class="slider__track" data-track>
+
+            <article class="slide">
+              <div class="slide__media">
+                <img src="images/nails-1.jpg" alt="Soft nude nails with glossy finish">
+              </div>
+              <div class="slide__content">
+                <p class="slide__tag">Fun fact</p>
+                <h3>Cuticle oil isn’t just “extra”</h3>
+                <p>Cuticle oil keeps nails flexible and hydrated, helping your set stay fresh for longer.</p>
+                <p class="slide__mini"><strong>Tip:</strong> Apply daily before bed.</p>
+              </div>
+            </article>
+
+            <article class="slide">
+              <div class="slide__media">
+                <img src="images/nails-2.jpg" alt="French tip nails">
+              </div>
+              <div class="slide__content">
+                <p class="slide__tag">Nail art tip</p>
+                <h3>French tips create an illusion</h3>
+                <p>Micro French tips make nails look longer and cleaner — even on short nails.</p>
+                <p class="slide__mini"><strong>Tip:</strong> Thinner tips = longer look.</p>
+              </div>
+            </article>
+
+            <article class="slide">
+              <div class="slide__media">
+                <img src="images/nails-3.jpg" alt="Chrome nails">
+              </div>
+              <div class="slide__content">
+                <p class="slide__tag">Did you know?</p>
+                <h3>Chrome needs a special base</h3>
+                <p>Chrome powder is applied over a specific cured layer — it’s not just shiny polish.</p>
+                <p class="slide__mini"><strong>Tip:</strong> Avoid harsh chemicals.</p>
+              </div>
+            </article>
+
+          </div>
+
+          <button class="slider__btn prev" type="button" aria-label="Previous slide">‹</button>
+          <button class="slider__btn next" type="button" aria-label="Next slide">›</button>
+
+          <div class="slider__dots" aria-label="Choose slide">
+            <span class="dot active" role="button" tabindex="0" aria-label="Go to slide 1"></span>
+            <span class="dot" role="button" tabindex="0" aria-label="Go to slide 2"></span>
+            <span class="dot" role="button" tabindex="0" aria-label="Go to slide 3"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         PRIVACY POLICY
+         ========================= -->
+    <section class="section" id="privacy">
+      <div class="container reveal" data-reveal>
+        <h2 class="section-title">Privacy Policy</h2>
+        <p class="section-subtitle">
+          We respect your privacy. This explains what we collect, why, and your rights.
+        </p>
+
+        <div class="card">
+          <h3>What we collect</h3>
+          <p class="tiny">Name, contact details, booking details, and cookie preferences (if selected).</p>
+          <br>
+
+          <h3>How we use it</h3>
+          <p class="tiny">To manage appointments, contact you about your booking, and improve our service.</p>
+          <br>
+
+          <h3>Data security</h3>
+          <p class="tiny">We take reasonable measures to protect your information.</p>
+          <br>
+
+          <h3>Your rights</h3>
+          <p class="tiny">You can request access, correction, or deletion of your data by contacting us.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         TERMS
+         ========================= -->
+    <section class="section" id="terms">
+      <div class="container reveal" data-reveal>
+        <h2 class="section-title">Terms & Conditions</h2>
+        <p class="section-subtitle">These terms keep bookings fair for everyone.</p>
+
+        <div class="card">
+          <h3>Bookings & deposits</h3>
+          <p class="tiny">Deposits may be required to secure a slot and reduce no-shows.</p>
+          <br>
+
+          <h3>Cancellations</h3>
+          <p class="tiny">Please cancel/reschedule at least 24 hours before your appointment.</p>
+          <br>
+
+          <h3>Late arrivals</h3>
+          <p class="tiny">Arriving late may reduce service time or require rescheduling.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         BOOKING MODAL
+         ========================= -->
     <section class="booking-modal" id="booking-form" aria-labelledby="booking-form-title">
       <div class="booking-panel">
         <a class="modal-close" href="#services" aria-label="Close booking form">×</a>
@@ -540,9 +1125,12 @@
 
   </main>
 
-  <!-- FOOTER -->
+  <!-- =========================
+       FOOTER
+       ========================= -->
   <footer class="footer">
     <div class="footer-grid">
+
       <div class="footer-block footer-intro">
         <p class="footer-name">Luxury Nail Studio</p>
         <p class="footer-muted">Appointments by booking only</p>
@@ -591,17 +1179,160 @@
           <li><a href="#" aria-label="Open WhatsApp">WhatsApp</a></li>
         </ul>
       </nav>
+
     </div>
 
     <div class="footer-bottom">
       <span class="footer-copy">© 2026 Luxury Nail Studio</span>
+
       <span class="footer-made">
         Made by <a class="footer-vantex" href="#" aria-label="Made by Team Vantex">Team VANTEX</a>
       </span>
     </div>
   </footer>
 
-  <!-- ✅ SERVICE MODAL MARKUP -->
+  <!-- =========================
+       AUTH MODAL
+       ========================= -->
+  <section class="auth-modal" id="auth-modal" aria-labelledby="auth-title">
+    <div class="auth-panel" role="dialog" aria-modal="true" aria-label="Login or Sign up">
+      <a class="modal-close" href="#" aria-label="Close">×</a>
+
+      <div class="auth-head">
+        <h2 id="auth-title">Welcome back</h2>
+        <p class="tiny">Log in to manage your bookings.</p>
+      </div>
+
+      <div class="auth-tabs" role="tablist" aria-label="Auth tabs">
+        <button class="auth-tab is-active" type="button" data-auth-tab="login" aria-selected="true">Login</button>
+        <button class="auth-tab" type="button" data-auth-tab="signup" aria-selected="false">Sign up</button>
+      </div>
+
+      <div id="authMsg" class="alert hidden" role="status" aria-live="polite"></div>
+
+      <form id="loginForm" class="auth-form" data-auth-panel="login">
+        <div>
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+        </div>
+
+        <div>
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="••••••••">
+        </div>
+
+        <button class="button" type="submit">Login</button>
+      </form>
+
+      <form id="signupForm" class="auth-form hidden" data-auth-panel="signup">
+        <div>
+          <label for="signupName">Full name</label>
+          <input id="signupName" type="text" autocomplete="name" required placeholder="Your name">
+        </div>
+
+        <div>
+          <label for="signupEmail">Email</label>
+          <input id="signupEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+        </div>
+
+        <div>
+          <label for="signupPassword">Password</label>
+          <input id="signupPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Create a password">
+          <div class="tiny">Minimum 6 characters.</div>
+        </div>
+
+        <button class="button" type="submit">Create account</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- =========================
+       LIGHTBOX
+       ========================= -->
+  <div id="lightbox" class="lightbox" aria-hidden="true">
+    <div class="lightbox-panel" role="dialog" aria-modal="true" aria-label="Gallery image preview">
+      <img id="lightboxImg" class="lightbox-img" alt="">
+      <div class="lightbox-bar">
+        <div id="lightboxTitle" class="lightbox-title">Gallery</div>
+        <div style="display:flex; gap:10px;">
+          <button id="prevBtn" class="lightbox-btn" aria-label="Previous">‹</button>
+          <button id="nextBtn" class="lightbox-btn" aria-label="Next">›</button>
+          <button id="closeBtn" class="lightbox-btn" aria-label="Close">×</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       COOKIE BANNER + SETTINGS
+       ========================= -->
+  <div class="cookie" id="cookieBanner" role="dialog" aria-modal="true" aria-labelledby="cookieTitle" aria-describedby="cookieDesc">
+    <div class="cookie__card">
+      <div class="cookie__text">
+        <h3 id="cookieTitle">Cookies 🍪</h3>
+        <p id="cookieDesc">
+          We use cookies to improve your booking experience, analyze traffic, and remember preferences.
+          <a href="#privacy">Privacy Policy</a>.
+        </p>
+      </div>
+
+      <div class="cookie__actions">
+        <button class="button button-outline cookie__btn" type="button" data-cookie="reject">Reject</button>
+        <button class="button button-outline cookie__btn" type="button" data-cookie="manage">Manage</button>
+        <button class="button cookie__btn" type="button" data-cookie="accept">Accept</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cookie-modal hidden" id="cookieModal" role="dialog" aria-modal="true" aria-labelledby="cookieModalTitle">
+    <div class="cookie-modal__panel">
+      <button class="modal-close" type="button" data-cookie="close" aria-label="Close cookie settings">×</button>
+
+      <h2 id="cookieModalTitle" class="section-title" style="margin-bottom:10px;">Cookie Settings</h2>
+      <p class="section-subtitle" style="margin-bottom:16px;">
+        Choose which cookies you want to allow. (Essential cookies are always on.)
+      </p>
+
+      <div class="cookie-modal__row">
+        <div>
+          <strong>Essential</strong>
+          <div class="tiny">Required for site + booking features.</div>
+        </div>
+        <span class="cookie-pill">Always On</span>
+      </div>
+
+      <div class="cookie-modal__row">
+        <div>
+          <strong>Analytics</strong>
+          <div class="tiny">Helps us understand traffic and improve the site.</div>
+        </div>
+        <label class="switch" aria-label="Toggle analytics cookies">
+          <input type="checkbox" id="cookieAnalytics">
+          <span class="switch__ui"></span>
+        </label>
+      </div>
+
+      <div class="cookie-modal__row">
+        <div>
+          <strong>Marketing</strong>
+          <div class="tiny">Personalized offers & ads (optional).</div>
+        </div>
+        <label class="switch" aria-label="Toggle marketing cookies">
+          <input type="checkbox" id="cookieMarketing">
+          <span class="switch__ui"></span>
+        </label>
+      </div>
+
+      <div class="cookie-modal__actions">
+        <button class="button button-outline" type="button" data-cookie="save">Save choices</button>
+        <button class="button" type="button" data-cookie="accept">Accept all</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       ✅ SERVICE MODAL
+       ========================= -->
   <div class="service-modal" id="serviceModal" aria-hidden="true">
     <div class="service-modal__backdrop" data-service-close="true"></div>
 
@@ -633,10 +1364,33 @@
     </div>
   </div>
 
+  <!-- =========================
+       ✅ INFO MODAL (Guide/Policies/Aftercare)
+       ========================= -->
+  <div class="info-modal" id="infoModal" aria-hidden="true">
+    <div class="info-modal__backdrop" data-info-close="true"></div>
+
+    <div class="info-modal__panel" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
+      <button class="info-modal__close" type="button" aria-label="Close" data-info-close="true">×</button>
+
+      <div class="info-modal__body">
+        <span id="infoModalPill" class="info-modal__pill">Info</span>
+        <h3 id="infoModalTitle" class="info-modal__title"></h3>
+        <p id="infoModalDesc" class="info-modal__desc"></p>
+        <ul id="infoModalList" class="info-modal__list"></ul>
+
+        <div class="info-modal__actions">
+          <a class="button" href="#booking-form" id="infoModalBookLink">Book now</a>
+          <button class="button button-outline" type="button" data-info-close="true">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- External JS -->
   <script src="script.js" defer></script>
 
-  <!-- ✅ Tiny helper + ✅ Services modal logic (FIXED BOOK BUTTON) -->
+  <!-- ✅ Helpers: dropdown close + cookies + service modal + info modal -->
   <script>
     // Close More dropdown when clicking outside + open cookie settings
     document.addEventListener("click", (e) => {
@@ -655,7 +1409,7 @@
       }
     });
 
-    // ✅ Services modal logic
+    // ✅ Services modal logic (FIXED Book button)
     (() => {
       "use strict";
 
@@ -734,22 +1488,102 @@
         if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
       });
 
-      // ✅ FIXED: open booking modal via hash + preselect service
+      // ✅ FIX: booking form is :target modal, so we MUST set hash
       bookBtn.addEventListener("click", () => {
         closeModal();
 
         // open booking modal
-        location.hash = "booking-form";
+        location.hash = "#booking-form";
 
-        // set select + trigger slot load
+        // set service after hash opens the modal
         setTimeout(() => {
           const serviceSelect = document.getElementById("service");
           if (serviceSelect && selectedValue) {
             serviceSelect.value = selectedValue;
             serviceSelect.dispatchEvent(new Event("change", { bubbles: true }));
           }
-          document.getElementById("date")?.focus();
-        }, 80);
+        }, 60);
+      });
+    })();
+
+    // ✅ Info modal logic (Guide/Policies/Aftercare)
+    (() => {
+      "use strict";
+
+      const modal = document.getElementById("infoModal");
+      if (!modal) return;
+
+      const pillEl = document.getElementById("infoModalPill");
+      const titleEl = document.getElementById("infoModalTitle");
+      const descEl = document.getElementById("infoModalDesc");
+      const listEl = document.getElementById("infoModalList");
+
+      let lastFocus = null;
+
+      function openInfo(card){
+        const pill = card.dataset.infoPill || "Info";
+        const title = card.dataset.infoTitle || "";
+        const desc = card.dataset.infoDesc || "";
+        const list = (card.dataset.infoList || "").split("|").map(s => s.trim()).filter(Boolean);
+
+        pillEl.textContent = pill;
+        titleEl.textContent = title;
+        descEl.textContent = desc;
+
+        listEl.innerHTML = "";
+        list.forEach(item => {
+          const li = document.createElement("li");
+          li.textContent = item;
+          listEl.appendChild(li);
+        });
+
+        lastFocus = document.activeElement;
+        modal.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+
+        modal.querySelector(".info-modal__close")?.focus();
+      }
+
+      function closeInfo(){
+        modal.classList.remove("is-open");
+        modal.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+        if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
+      }
+
+      document.addEventListener("click", (e) => {
+        const closeHit = e.target.closest("[data-info-close='true']");
+        if (closeHit && modal.classList.contains("is-open")) {
+          closeInfo();
+          return;
+        }
+
+        const card = e.target.closest(".info-card");
+        if (!card) return;
+
+        // ignore selecting text
+        if (window.getSelection && String(window.getSelection()).length) return;
+
+        // don’t open when clicking links/buttons inside card (if any)
+        if (e.target.closest("a") || e.target.closest("button")) return;
+
+        openInfo(card);
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal.classList.contains("is-open")) closeInfo();
+      });
+
+      // Keyboard open (Enter/Space)
+      document.addEventListener("keydown", (e) => {
+        const focused = document.activeElement;
+        if (!focused || !focused.classList || !focused.classList.contains("info-card")) return;
+
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openInfo(focused);
+        }
       });
     })();
   </script>
