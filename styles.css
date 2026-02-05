@@ -1754,6 +1754,50 @@ html[data-theme="light"] .booking-panel input[type="date"]{
 html[data-theme="light"] .booking-panel input[type="date"]::-webkit-calendar-picker-indicator{
   filter: none !important;
 }
+/* =========================
+   ✅ FIX: Info Modal text visible (Guide/Policies/Aftercare)
+   Paste at END of styles.css or your <style> block
+   ========================= */
+
+.info-modal__panel,
+.info-modal__panel *{
+  color: var(--text, #111827);
+}
+
+/* description + list */
+.info-modal__desc{
+  color: rgba(17,24,39,0.78);
+}
+
+.info-modal__list{
+  margin: 0;
+  padding-left: 18px;
+  list-style: disc;
+  color: rgba(17,24,39,0.78);
+}
+
+.info-modal__list li{
+  margin: 6px 0;
+}
+
+/* Stronger title */
+.info-modal__title{
+  color: var(--text, #111827);
+}
+
+/* Dark mode: force readable */
+@media (prefers-color-scheme: dark){
+  .info-modal__panel,
+  .info-modal__panel *{
+    color: #f9fafb !important;
+  }
+
+  .info-modal__desc,
+  .info-modal__list{
+    color: rgba(249,250,251,0.82) !important;
+  }
+}
+
 
 
 
