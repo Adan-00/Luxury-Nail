@@ -669,4 +669,36 @@ console.log("✅ script.js loaded");
     });
   }
 })();
+// ✅ Close Booking Modal when clicking outside (blank overlay)
+document.addEventListener("DOMContentLoaded", () => {
+  const bookingModal = document.getElementById("booking-form");
+  const bookingPanel = bookingModal?.querySelector(".booking-panel");
+
+  if (!bookingModal || !bookingPanel) return;
+
+  function closeBookingModal() {
+    // same behaviour as your × (it goes to #services)
+    location.hash = "#services";
+  }
+
+  // click/tap on the overlay closes it
+  bookingModal.addEventListener("click", (e) => {
+    // only when the booking modal is actually open via hash
+    if (location.hash !== "#booking-form") return;
+
+    // if click is NOT inside the panel -> close
+    if (!bookingPanel.contains(e.target)) closeBookingModal();
+  });
+
+  // prevent clicks inside the panel from bubbling to overlay close
+  bookingPanel.addEventListener("click", (e) => e.stopPropagation());
+
+  // optional: ESC closes too ✨
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && location.hash === "#booking-form") {
+      closeBookingModal();
+    }
+  });
+});
+
 
