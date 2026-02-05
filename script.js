@@ -30,8 +30,11 @@ console.log("✅ script.js loaded");
     },
   };
 
+  // ✅ Backend base
   const isFile = location.protocol === "file:";
-  const BACKEND = isFile ? "http://localhost:8080" : "";
+  const BACKEND = isFile
+    ? "http://localhost:8080"
+    : "https://luxury-nail-backend.onrender.com";
 
   document.addEventListener("DOMContentLoaded", () => {
     themeToggleInit();
@@ -112,12 +115,8 @@ console.log("✅ script.js loaded");
 
   // =========================
   // ✅ Reveal on Scroll (FIXED)
-  // - Works with: [data-reveal], .reveal, .stagger
-  // - ALSO auto-tags common sections that were missing data-reveal
-  // - Re-runs after opening hash sections (booking/auth/menu)
   // =========================
   function revealInit() {
-    // 🔥 Auto-tag the parts in your HTML that currently have NO data-reveal
     document
       .querySelectorAll(
         [
@@ -141,21 +140,15 @@ console.log("✅ script.js loaded");
         if (!el.hasAttribute("data-reveal")) el.setAttribute("data-reveal", "");
       });
 
-    // Collect targets AFTER tagging
     const els = Array.from(document.querySelectorAll('[data-reveal], .reveal, .stagger'));
     if (!els.length) return;
 
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
-    // Apply base class + delays
     els.forEach((el) => {
       if (!el.classList.contains("reveal")) el.classList.add("reveal");
-
       const d = Number(el.getAttribute("data-delay") || 0);
       if (d) el.style.transitionDelay = `${d}ms`;
-
-      // Helpful for debugging if needed
-      // el.style.outline = "1px dashed rgba(255,0,0,.25)";
     });
 
     if (reduced || !("IntersectionObserver" in window)) {
@@ -170,11 +163,9 @@ console.log("✅ script.js loaded");
 
           const el = entry.target;
 
-          // Ensure transition actually triggers
           requestAnimationFrame(() => {
             el.classList.add("is-visible");
 
-            // Stagger children
             if (el.classList.contains("stagger")) {
               Array.from(el.children).forEach((child, i) => {
                 child.style.transitionDelay = `${i * 90}ms`;
@@ -191,7 +182,6 @@ console.log("✅ script.js loaded");
     els.forEach((el) => io.observe(el));
   }
 
-  // Re-run reveal after hash navigation (booking modal etc.)
   window.addEventListener("hashchange", () => {
     setTimeout(() => {
       try {
@@ -201,7 +191,7 @@ console.log("✅ script.js loaded");
   });
 
   // =========================
-  // Booking / Slots
+  // Booking / Slots ✅ FIXED
   // =========================
   function bookingInit() {
     const form = $("#bookingForm");
@@ -234,8 +224,10 @@ console.log("✅ script.js loaded");
       }
     };
 
-    const today = new Date();
-    dateInput.min = today.toISOString().split("T")[0];
+    // ✅ FIX: timezone-safe min date (no ISO shift)
+    const pad = (n) => String(n).padStart(2, "0");
+    const todayLocal = new Date();
+    dateInput.min = `${todayLocal.getFullYear()}-${pad(todayLocal.getMonth() + 1)}-${pad(todayLocal.getDate())}`;
 
     function resetTimeDropdown(msg) {
       timeSelect.innerHTML = `<option value="">Pick a time</option>`;
@@ -259,6 +251,7 @@ console.log("✅ script.js loaded");
     form.addEventListener("input", toggleSubmit);
     form.addEventListener("change", toggleSubmit);
 
+    // ✅ FIXED SLOT LOADER
     async function loadAvailableSlots() {
       const date = dateInput.value;
       const service = serviceSelect.value;
@@ -268,13 +261,13 @@ console.log("✅ script.js loaded");
       if (!date || !service) return;
 
       try {
-        const res = await fetch(
-          `${BACKEND}/api/slots?date=${encodeURIComponent(date)}&service=${encodeURIComponent(service)}`
-        );
+        const res = await fetch(`${BACKEND}/api/slots?date=${encodeURIComponent(date)}`);
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Failed to load slots");
 
-        const available = Array.isArray(data.available) ? data.available : [];
+        // ✅ server returns { slots: [...] }
+        const available = Array.isArray(data.slots) ? data.slots : [];
+
         if (!available.length) {
           resetTimeDropdown("No slots left 😭");
           toggleSubmit();
@@ -290,10 +283,14 @@ console.log("✅ script.js loaded");
         });
 
         timeSelect.disabled = false;
-        timeHint.textContent = data.durationMins ? `Duration: ${data.durationMins} mins` : "Choose a time to continue.";
+        timeHint.textContent = "Choose a time to continue.";
         toggleSubmit();
-      } catch {
-        resetTimeDropdown(isFile ? "Server not running on localhost:8080" : "Could not load slots right now.");
+      } catch (err) {
+        resetTimeDropdown(
+          isFile
+            ? "Server not running on localhost:8080"
+            : (err?.message || "Could not load slots right now.")
+        );
         toggleSubmit();
       }
     }
@@ -335,6 +332,7 @@ console.log("✅ script.js loaded");
         setStatus({ ok: true, msg: "Request sent ✅ We’ll confirm your booking soon." });
         form.reset();
         resetTimeDropdown();
+        toggleSubmit();
       } catch (err) {
         setStatus({ ok: false, msg: err?.message || "Something went wrong. Try again." });
       } finally {
@@ -596,7 +594,6 @@ console.log("✅ script.js loaded");
       lightbox.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
 
-      // ensure any reveal inside overlays (if you add later) works
       setTimeout(() => {
         try {
           revealInit();
@@ -640,3 +637,4 @@ console.log("✅ script.js loaded");
     });
   }
 })();
+
