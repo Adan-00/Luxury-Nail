@@ -30,11 +30,10 @@ console.log("✅ script.js loaded");
     },
   };
 
-  // ✅ Backend base
   const isFile = location.protocol === "file:";
-  const BACKEND = isFile
-    ? "http://localhost:8080"
-    : "https://luxury-nail-backend.onrender.com";
+  const BACKEND = location.hostname.includes("github.io")
+  ? "https://luxury-nail-backend.onrender.com"
+  : "http://localhost:8080";
 
   document.addEventListener("DOMContentLoaded", () => {
     themeToggleInit();
@@ -115,8 +114,12 @@ console.log("✅ script.js loaded");
 
   // =========================
   // ✅ Reveal on Scroll (FIXED)
+  // - Works with: [data-reveal], .reveal, .stagger
+  // - ALSO auto-tags common sections that were missing data-reveal
+  // - Re-runs after opening hash sections (booking/auth/menu)
   // =========================
   function revealInit() {
+    // 🔥 Auto-tag the parts in your HTML that currently have NO data-reveal
     document
       .querySelectorAll(
         [
@@ -140,15 +143,21 @@ console.log("✅ script.js loaded");
         if (!el.hasAttribute("data-reveal")) el.setAttribute("data-reveal", "");
       });
 
+    // Collect targets AFTER tagging
     const els = Array.from(document.querySelectorAll('[data-reveal], .reveal, .stagger'));
     if (!els.length) return;
 
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
+    // Apply base class + delays
     els.forEach((el) => {
       if (!el.classList.contains("reveal")) el.classList.add("reveal");
+
       const d = Number(el.getAttribute("data-delay") || 0);
       if (d) el.style.transitionDelay = `${d}ms`;
+
+      // Helpful for debugging if needed
+      // el.style.outline = "1px dashed rgba(255,0,0,.25)";
     });
 
     if (reduced || !("IntersectionObserver" in window)) {
@@ -163,9 +172,11 @@ console.log("✅ script.js loaded");
 
           const el = entry.target;
 
+          // Ensure transition actually triggers
           requestAnimationFrame(() => {
             el.classList.add("is-visible");
 
+            // Stagger children
             if (el.classList.contains("stagger")) {
               Array.from(el.children).forEach((child, i) => {
                 child.style.transitionDelay = `${i * 90}ms`;
@@ -182,6 +193,7 @@ console.log("✅ script.js loaded");
     els.forEach((el) => io.observe(el));
   }
 
+  // Re-run reveal after hash navigation (booking modal etc.)
   window.addEventListener("hashchange", () => {
     setTimeout(() => {
       try {
@@ -191,195 +203,41 @@ console.log("✅ script.js loaded");
   });
 
   // =========================
-  // Booking / Slots ✅ FIXED
+  // Booking / Slots
   // =========================
-function bookingInit() {
-  const form = $("#bookingForm");
-  if (!form) return;
+  function bookingInit() {
+    const form = $("#bookingForm");
+    if (!form) return;
 
-  const successBox = $("#formSuccess");
-  const errorBox = $("#formError");
-  const serviceSelect = $("#service");
-  const dateInput = $("#date");
-  const timeSelect = $("#time");
-  const timeHint = $("#timeHint");
+    const successBox = $("#formSuccess");
+    const errorBox = $("#formError");
+    const serviceSelect = $("#service");
+    const dateInput = $("#date");
+    const timeSelect = $("#time");
+    const timeHint = $("#timeHint");
 
-  if (!successBox || !errorBox || !serviceSelect || !dateInput || !timeSelect || !timeHint) return;
+    if (!successBox || !errorBox || !serviceSelect || !dateInput || !timeSelect || !timeHint) return;
 
-  const submitBtn = form.querySelector('button[type="submit"]');
+    const submitBtn = form.querySelector('button[type="submit"]');
 
-  const show = (el) => el && el.classList.remove("hidden");
-  const hide = (el) => el && el.classList.add("hidden");
+    const show = (el) => el && el.classList.remove("hidden");
+    const hide = (el) => el && el.classList.add("hidden");
 
-  const setStatus = ({ ok, msg }) => {
-    hide(successBox);
-    hide(errorBox);
-    if (!msg) return;
-    if (ok) {
-      successBox.textContent = msg;
-      show(successBox);
-    } else {
-      errorBox.textContent = msg;
-      show(errorBox);
-    }
-  };
-
-  // ✅ helper: read field by id OR by form.name
-  const getVal = (id, formName) => {
-    const byId = document.getElementById(id);
-    if (byId && typeof byId.value === "string") return byId.value.trim();
-    const byName = form[formName];
-    if (byName && typeof byName.value === "string") return byName.value.trim();
-    return "";
-  };
-
-  // ✅ timezone-safe min date
-  const pad = (n) => String(n).padStart(2, "0");
-  const todayLocal = new Date();
-  dateInput.min = `${todayLocal.getFullYear()}-${pad(todayLocal.getMonth() + 1)}-${pad(todayLocal.getDate())}`;
-
-  function resetTimeDropdown(msg) {
-    timeSelect.innerHTML = `<option value="">Pick a time</option>`;
-    timeSelect.disabled = true;
-    timeHint.textContent = msg || "Pick a service + date to see available times.";
-  }
-
-  function getServiceValue() {
-    // ✅ handles cases where option value="" but text exists
-    const v = (serviceSelect.value || "").trim();
-    if (v) return v;
-    const text = serviceSelect.options?.[serviceSelect.selectedIndex]?.textContent?.trim() || "";
-    // avoid placeholder text
-    if (!text || /select/i.test(text)) return "";
-    return text;
-  }
-
-  function toggleSubmit() {
-    if (!submitBtn) return;
-
-    const fullName = getVal("fullName", "fullName");
-    const email = getVal("clientEmail", "clientEmail");
-    const contact = getVal("contactDetail", "contactDetail");
-    const service = getServiceValue();
-    const date = (dateInput.value || "").trim();
-    const time = (timeSelect.value || "").trim();
-
-    submitBtn.disabled = !(fullName && email && contact && service && date && time);
-  }
-
-  form.addEventListener("input", toggleSubmit);
-  form.addEventListener("change", toggleSubmit);
-
-  async function loadAvailableSlots() {
-    const date = (dateInput.value || "").trim();
-    const service = getServiceValue();
-
-    resetTimeDropdown("Loading available times...");
-
-    if (!date || !service) return;
-
-    try {
-      const res = await fetch(`${BACKEND}/api/slots?date=${encodeURIComponent(date)}`);
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed to load slots");
-
-      const available = Array.isArray(data.slots) ? data.slots : [];
-
-      if (!available.length) {
-        resetTimeDropdown("No slots left 😭");
-        toggleSubmit();
-        return;
+    const setStatus = ({ ok, msg }) => {
+      hide(successBox);
+      hide(errorBox);
+      if (!msg) return;
+      if (ok) {
+        successBox.textContent = msg;
+        show(successBox);
+      } else {
+        errorBox.textContent = msg;
+        show(errorBox);
       }
-
-      timeSelect.innerHTML = `<option value="">Pick a time</option>`;
-      available.forEach((t) => {
-        const opt = document.createElement("option");
-        opt.value = t;
-        opt.textContent = t;
-        timeSelect.appendChild(opt);
-      });
-
-      timeSelect.disabled = false;
-      timeHint.textContent = "Choose a time to continue.";
-      toggleSubmit();
-    } catch (err) {
-      resetTimeDropdown(
-        isFile
-          ? "Server not running on localhost:8080"
-          : (err?.message || "Could not load slots right now.")
-      );
-      toggleSubmit();
-    }
-  }
-
-  serviceSelect.addEventListener("change", loadAvailableSlots);
-  dateInput.addEventListener("change", loadAvailableSlots);
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setStatus({ ok: true, msg: "" });
-
-    const originalText = submitBtn?.textContent || "Send Booking Request";
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Sending...";
-    }
-
-    const payload = {
-      fullName: getVal("fullName", "fullName"),
-      clientEmail: getVal("clientEmail", "clientEmail"),
-      contactDetail: getVal("contactDetail", "contactDetail"),
-      service: getServiceValue(),
-      date: (dateInput.value || "").trim(),
-      time: (timeSelect.value || "").trim(),
-      notes: getVal("notes", "notes"),
-      website: getVal("website", "website"),
     };
 
-    console.log("📦 booking payload ->", payload);
-
-    if (!payload.service || !payload.date || !payload.time) {
-      setStatus({ ok: false, msg: "Please select a service, date and time 🫶" });
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-      }
-      return;
-    }
-
-    try {
-      const res = await fetch(`${BACKEND}/api/appointments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Booking failed");
-
-      setStatus({ ok: true, msg: "Request sent ✅ We’ll confirm your booking soon." });
-      form.reset();
-      resetTimeDropdown();
-      toggleSubmit();
-    } catch (err) {
-      setStatus({ ok: false, msg: err?.message || "Something went wrong. Try again." });
-    } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-      }
-    }
-  });
-
-  resetTimeDropdown();
-  toggleSubmit();
-}
-
-
-    // ✅ FIX: timezone-safe min date (no ISO shift)
-    const pad = (n) => String(n).padStart(2, "0");
-    const todayLocal = new Date();
-    dateInput.min = `${todayLocal.getFullYear()}-${pad(todayLocal.getMonth() + 1)}-${pad(todayLocal.getDate())}`;
+    const today = new Date();
+    dateInput.min = today.toISOString().split("T")[0];
 
     function resetTimeDropdown(msg) {
       timeSelect.innerHTML = `<option value="">Pick a time</option>`;
@@ -403,7 +261,6 @@ function bookingInit() {
     form.addEventListener("input", toggleSubmit);
     form.addEventListener("change", toggleSubmit);
 
-    // ✅ FIXED SLOT LOADER
     async function loadAvailableSlots() {
       const date = dateInput.value;
       const service = serviceSelect.value;
@@ -413,13 +270,13 @@ function bookingInit() {
       if (!date || !service) return;
 
       try {
-        const res = await fetch(`${BACKEND}/api/slots?date=${encodeURIComponent(date)}`);
+        const res = await fetch(
+          `${BACKEND}/api/slots?date=${encodeURIComponent(date)}&service=${encodeURIComponent(service)}`
+        );
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Failed to load slots");
 
-        // ✅ server returns { slots: [...] }
-        const available = Array.isArray(data.slots) ? data.slots : [];
-
+        const available = Array.isArray(data.available) ? data.available : [];
         if (!available.length) {
           resetTimeDropdown("No slots left 😭");
           toggleSubmit();
@@ -435,14 +292,10 @@ function bookingInit() {
         });
 
         timeSelect.disabled = false;
-        timeHint.textContent = "Choose a time to continue.";
+        timeHint.textContent = data.durationMins ? `Duration: ${data.durationMins} mins` : "Choose a time to continue.";
         toggleSubmit();
-      } catch (err) {
-        resetTimeDropdown(
-          isFile
-            ? "Server not running on localhost:8080"
-            : (err?.message || "Could not load slots right now.")
-        );
+      } catch {
+        resetTimeDropdown(isFile ? "Server not running on localhost:8080" : "Could not load slots right now.");
         toggleSubmit();
       }
     }
@@ -484,7 +337,6 @@ function bookingInit() {
         setStatus({ ok: true, msg: "Request sent ✅ We’ll confirm your booking soon." });
         form.reset();
         resetTimeDropdown();
-        toggleSubmit();
       } catch (err) {
         setStatus({ ok: false, msg: err?.message || "Something went wrong. Try again." });
       } finally {
@@ -746,6 +598,7 @@ function bookingInit() {
       lightbox.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
 
+      // ensure any reveal inside overlays (if you add later) works
       setTimeout(() => {
         try {
           revealInit();
@@ -789,5 +642,3 @@ function bookingInit() {
     });
   }
 })();
-
-
