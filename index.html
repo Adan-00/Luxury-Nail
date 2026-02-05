@@ -1039,11 +1039,10 @@
       <span class="footer-copy">© 2026 Luxury Nail Studio</span>
 
       <span class="footer-made">
-  Made by <a class="footer-vantex" href="#" aria-label="Made by Team Vantex">Team VANTEX</a>
-</span>
+        Made by <a class="footer-vantex" href="#" aria-label="Made by Team Vantex">Team VANTEX</a>
+      </span>
     </div>
   </footer>
-
 
   <!-- =========================
        AUTH MODAL
@@ -1293,7 +1292,6 @@
         if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
       }
 
-      // Open on View button OR clicking card/media/title/desc
       document.addEventListener("click", (e) => {
         const closeHit = e.target.closest("[data-service-close='true']");
         if (closeHit && modal.classList.contains("is-open")) {
@@ -1318,12 +1316,10 @@
         }
       });
 
-      // ESC close
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
       });
 
-      // Book this service -> open booking + set select value
       bookBtn.addEventListener("click", () => {
         closeModal();
 
