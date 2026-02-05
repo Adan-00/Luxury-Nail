@@ -1704,4 +1704,27 @@ html[data-theme="light"] .auth-tab{ background: rgba(11,11,16,0.04); }
   .footer-bottom{ justify-content: center; text-align: center; }
 }
 
+/* ✅ FIX: bring back the date picker icon */
+.booking-panel input[type="date"]{
+  -webkit-appearance: auto !important;
+  appearance: auto !important;
+  padding-right: 46px;
+  color-scheme: dark; /* makes icon visible in dark UI */
+}
+
+/* keep icon visible + clickable */
+.booking-panel input[type="date"]::-webkit-calendar-picker-indicator{
+  opacity: 1 !important;
+  cursor: pointer;
+  filter: invert(1) brightness(1.2);
+}
+
+/* Light theme override */
+html[data-theme="light"] .booking-panel input[type="date"]{
+  color-scheme: light;
+}
+html[data-theme="light"] .booking-panel input[type="date"]::-webkit-calendar-picker-indicator{
+  filter: none !important;
+}
+
 
