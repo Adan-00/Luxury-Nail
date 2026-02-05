@@ -17,7 +17,7 @@
   <!-- External CSS -->
   <link rel="stylesheet" href="./styles.css">
 
-  <!-- ✅ Minimal FIXES (Dropdown + Reviews Dark Patch only) -->
+  <!-- ✅ Minimal FIXES (Dropdown + Reviews Dark Patch + ✅ Service Modal) -->
   <style>
     @media (prefers-color-scheme: dark){
       #reviews.section{
@@ -92,6 +92,113 @@
     }
     .nav-drop__menu a:hover{
       background: rgba(231,179,194,0.10);
+    }
+
+    /* =========================
+       ✅ SERVICE MODAL (Services cards "open up")
+       ========================= */
+    .service-modal{
+      position: fixed;
+      inset: 0;
+      display: none;
+      z-index: 99999;
+    }
+    .service-modal.is-open{ display: block; }
+
+    .service-modal__backdrop{
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 10, 10, 0.55);
+      backdrop-filter: blur(6px);
+    }
+
+    .service-modal__panel{
+      position: relative;
+      width: min(920px, calc(100% - 28px));
+      margin: 7vh auto;
+      background: var(--surface, #fff);
+      border-radius: 22px;
+      border: 1px solid rgba(17,24,39,0.10);
+      box-shadow: 0 24px 70px rgba(0,0,0,0.25);
+      overflow: hidden;
+      transform: translateY(10px);
+      animation: serviceModalIn .18s ease-out forwards;
+    }
+
+    @keyframes serviceModalIn{
+      to { transform: translateY(0); }
+    }
+
+    .service-modal__close{
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.10);
+      background: rgba(255,255,255,0.9);
+      font-size: 26px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .service-modal__body{
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 18px;
+      padding: 18px;
+    }
+
+    .service-modal__media img{
+      width: 100%;
+      height: 100%;
+      max-height: 420px;
+      object-fit: cover;
+      border-radius: 18px;
+    }
+
+    .service-modal__meta{
+      display: flex;
+      gap: 10px;
+      margin: 10px 0 12px;
+      color: var(--muted, #6b7280);
+      font-weight: 700;
+    }
+
+    .service-modal__desc{
+      margin: 0 0 10px;
+      color: var(--text, #111827);
+    }
+
+    .service-modal__more{
+      margin: 0 0 16px;
+      color: rgba(17,24,39,0.75);
+    }
+
+    .service-modal__actions{
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 820px){
+      .service-modal__body{ grid-template-columns: 1fr; }
+      .service-modal__panel{ margin: 4vh auto; }
+    }
+
+    @media (prefers-color-scheme: dark){
+      .service-modal__panel{
+        background: rgba(15, 23, 42, 0.92);
+        border: 1px solid rgba(255,255,255,0.12);
+      }
+      .service-modal__close{
+        background: rgba(255,255,255,0.10);
+        border-color: rgba(255,255,255,0.14);
+        color: #f9fafb;
+      }
+      .service-modal__desc{ color: #f9fafb; }
+      .service-modal__more{ color: rgba(249,250,251,0.78); }
     }
   </style>
 </head>
@@ -230,7 +337,7 @@
     </section>
 
     <!-- =========================
-         SERVICES
+         SERVICES (✅ Cards now open modal)
          ========================= -->
     <section class="section" id="services">
       <div class="container">
@@ -240,36 +347,64 @@
         </p>
 
         <div class="services-grid">
-          <article class="card" data-reveal data-delay="0">
+          <article class="card service-card" data-reveal data-delay="0"
+            data-title="Manicure"
+            data-price="£45"
+            data-duration="45 min"
+            data-desc="Clean cuticles, shaping, and a glossy, breathable finish."
+            data-img="./images/g4.png"
+            data-service="manicure"
+            data-more="Includes cuticle care + shaping + luxury finish. Add chrome, gems or minimal art as an add-on.">
             <h3>Manicure</h3>
             <div class="service-meta"><span>£45</span><span>45 min</span></div>
             <div class="service-img"><img src="./images/g4.png" alt="Manicure style nails" /></div>
             <p>Clean cuticles, shaping, and a glossy, breathable finish.</p>
-            <a class="button button-outline" href="#booking-form">Book</a>
+            <button class="button button-outline service-open" type="button">View</button>
           </article>
 
-          <article class="card" data-reveal data-delay="80">
+          <article class="card service-card" data-reveal data-delay="80"
+            data-title="Gel nails"
+            data-price="£65"
+            data-duration="60 min"
+            data-desc="Long-lasting shine with a flexible, chip-resistant gel overlay."
+            data-img="./images/g1.png"
+            data-service="gel"
+            data-more="Perfect for natural nails. Strong glossy overlay that lasts 2–3 weeks with good aftercare.">
             <h3>Gel nails</h3>
             <div class="service-meta"><span>£65</span><span>60 min</span></div>
             <div class="service-img"><img src="./images/g1.png" alt="Gel nails set" /></div>
             <p>Long-lasting shine with a flexible, chip-resistant gel overlay.</p>
-            <a class="button button-outline" href="#booking-form">Book</a>
+            <button class="button button-outline service-open" type="button">View</button>
           </article>
 
-          <article class="card" data-reveal data-delay="160">
+          <article class="card service-card" data-reveal data-delay="160"
+            data-title="Acrylics"
+            data-price="£80"
+            data-duration="75 min"
+            data-desc="Structured extensions with clean sculpting and luxury polish."
+            data-img="./images/g2.png"
+            data-service="acrylics"
+            data-more="Great for added length + shape. Best booked with enough time if you want complex designs.">
             <h3>Acrylics</h3>
             <div class="service-meta"><span>£80</span><span>75 min</span></div>
             <div class="service-img"><img src="./images/g2.png" alt="Acrylic nails set" /></div>
             <p>Structured extensions with clean sculpting and luxury polish.</p>
-            <a class="button button-outline" href="#booking-form">Book</a>
+            <button class="button button-outline service-open" type="button">View</button>
           </article>
 
-          <article class="card" data-reveal data-delay="240">
+          <article class="card service-card" data-reveal data-delay="240"
+            data-title="Nail art add-ons"
+            data-price="£15+"
+            data-duration="15–30 min"
+            data-desc="Minimal line work, chrome accents, or soft floral details."
+            data-img="./images/g3.png"
+            data-service="nail-art"
+            data-more="Add this to any service. Price depends on complexity (simple accents → full custom set).">
             <h3>Nail art add-ons</h3>
             <div class="service-meta"><span>£15+</span><span>15–30 min</span></div>
             <div class="service-img"><img src="./images/g3.png" alt="Nail art details" /></div>
             <p>Minimal line work, chrome accents, or soft floral details.</p>
-            <a class="button button-outline" href="#booking-form">Book</a>
+            <button class="button button-outline service-open" type="button">View</button>
           </article>
         </div>
       </div>
@@ -842,7 +977,7 @@
 
   </main>
 
-    <!-- =========================
+  <!-- =========================
        FOOTER
        ========================= -->
   <footer class="footer">
@@ -904,8 +1039,8 @@
       <span class="footer-copy">© 2026 Luxury Nail Studio</span>
 
       <span class="footer-made">
-        Made by <a class="footer-vantex" href="#" aria-label="Made by Vantex">VANTEX</a>
-      </span>
+  Made by <a class="footer-vantex" href="#" aria-label="Made by Team Vantex">Team VANTEX</a>
+</span>
     </div>
   </footer>
 
@@ -1050,19 +1185,53 @@
     </div>
   </div>
 
+  <!-- =========================
+       ✅ SERVICE MODAL MARKUP
+       ========================= -->
+  <div class="service-modal" id="serviceModal" aria-hidden="true">
+    <div class="service-modal__backdrop" data-service-close="true"></div>
+
+    <div class="service-modal__panel" role="dialog" aria-modal="true" aria-labelledby="serviceModalTitle">
+      <button class="service-modal__close" type="button" aria-label="Close" data-service-close="true">×</button>
+
+      <div class="service-modal__body">
+        <div class="service-modal__media">
+          <img id="serviceModalImg" src="" alt="">
+        </div>
+
+        <div class="service-modal__content">
+          <h3 id="serviceModalTitle"></h3>
+
+          <div class="service-modal__meta">
+            <span id="serviceModalPrice"></span>
+            <span id="serviceModalDuration"></span>
+          </div>
+
+          <p id="serviceModalDesc" class="service-modal__desc"></p>
+          <p id="serviceModalMore" class="service-modal__more"></p>
+
+          <div class="service-modal__actions">
+            <button class="button" id="serviceModalBook" type="button">Book this service</button>
+            <button class="button button-outline" type="button" data-service-close="true">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- External JS -->
   <script src="script.js" defer></script>
 
-  <!-- ✅ Tiny helper: close More when click outside + open cookie settings from footer/mobile -->
+  <!-- ✅ Tiny helper: close More when click outside + open cookie settings from footer/mobile
+       + ✅ Services modal open/close + preselect booking service -->
   <script>
+    // Close More dropdown when clicking outside + open cookie settings
     document.addEventListener("click", (e) => {
-      // Close "More" dropdown when clicking outside
       const moreMenu = document.getElementById("moreMenu");
       if (moreMenu && moreMenu.open && !moreMenu.contains(e.target)) {
         moreMenu.removeAttribute("open");
       }
 
-      // Open cookie settings from footer/mobile links
       const t = e.target;
       if (!t) return;
 
@@ -1072,9 +1241,102 @@
         manageBtn?.click();
       }
     });
+
+    // ✅ Services modal logic
+    (() => {
+      "use strict";
+
+      const modal = document.getElementById("serviceModal");
+      if (!modal) return;
+
+      const titleEl = document.getElementById("serviceModalTitle");
+      const priceEl = document.getElementById("serviceModalPrice");
+      const durEl = document.getElementById("serviceModalDuration");
+      const descEl = document.getElementById("serviceModalDesc");
+      const moreEl = document.getElementById("serviceModalMore");
+      const imgEl = document.getElementById("serviceModalImg");
+      const bookBtn = document.getElementById("serviceModalBook");
+
+      let lastFocus = null;
+      let selectedValue = "";
+
+      function openModalFromCard(card){
+        const title = card.dataset.title || "";
+        const price = card.dataset.price || "";
+        const duration = card.dataset.duration || "";
+        const desc = card.dataset.desc || "";
+        const more = card.dataset.more || "";
+        const img = card.dataset.img || "";
+        selectedValue = card.dataset.service || "";
+
+        titleEl.textContent = title;
+        priceEl.textContent = price;
+        durEl.textContent = duration;
+        descEl.textContent = desc;
+        moreEl.textContent = more;
+
+        imgEl.src = img;
+        imgEl.alt = title || "Service";
+
+        lastFocus = document.activeElement;
+        modal.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+
+        modal.querySelector(".service-modal__close")?.focus();
+      }
+
+      function closeModal(){
+        modal.classList.remove("is-open");
+        modal.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+        if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
+      }
+
+      // Open on View button OR clicking card/media/title/desc
+      document.addEventListener("click", (e) => {
+        const closeHit = e.target.closest("[data-service-close='true']");
+        if (closeHit && modal.classList.contains("is-open")) {
+          closeModal();
+          return;
+        }
+
+        const card = e.target.closest(".service-card");
+        if (!card) return;
+
+        if (window.getSelection && String(window.getSelection()).length) return;
+
+        if (
+          e.target.closest(".service-open") ||
+          e.target.closest(".service-img") ||
+          e.target.closest("h3") ||
+          e.target.closest("p") ||
+          e.target === card
+        ) {
+          e.preventDefault();
+          openModalFromCard(card);
+        }
+      });
+
+      // ESC close
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
+      });
+
+      // Book this service -> open booking + set select value
+      bookBtn.addEventListener("click", () => {
+        closeModal();
+
+        const booking = document.getElementById("booking-form");
+        booking?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        const serviceSelect = document.getElementById("service");
+        if (serviceSelect && selectedValue) {
+          serviceSelect.value = selectedValue;
+          serviceSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      });
+    })();
   </script>
 </body>
 </html>
-
-
-
