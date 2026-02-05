@@ -289,7 +289,7 @@ console.log("✅ script.js loaded");
       stopSlotPolling();
       slotPoll = setInterval(() => {
         if (dateInput.value && serviceSelect.value) loadAvailableSlots();
-      }, 4000);
+      }, 300000);
     }
 
     function stopSlotPolling() {
@@ -698,3 +698,4 @@ console.log("✅ script.js loaded");
     });
   }
 })();
+
