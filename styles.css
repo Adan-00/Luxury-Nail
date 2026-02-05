@@ -1726,5 +1726,10 @@ html[data-theme="light"] .booking-panel input[type="date"]{
 html[data-theme="light"] .booking-panel input[type="date"]::-webkit-calendar-picker-indicator{
   filter: none !important;
 }
+.booking-panel input[type="date"]::-webkit-inner-spin-button{
+  display: none;
+}
+
+
 
 
