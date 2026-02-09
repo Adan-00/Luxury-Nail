@@ -17,7 +17,7 @@
   <!-- External CSS -->
   <link rel="stylesheet" href="./styles.css">
 
-  <!-- ✅ Minimal FIXES (Dropdown + Reviews Dark Patch + ✅ Modals) -->
+  <!-- ✅ Minimal FIXES (Reviews Dark Patch + Dropdown + NEW Mobile Drawer Nav) -->
   <style>
     @media (prefers-color-scheme: dark){
       #reviews.section{
@@ -43,7 +43,7 @@
     }
 
     /* =========================
-       ✅ FIX: "More" dropdown is vertical + hidden until open
+       ✅ FIX: "More" dropdown vertical + hidden until open
        ========================= */
     details.nav-drop{ position: relative; }
 
@@ -71,7 +71,6 @@
       box-shadow: 0 18px 44px rgba(17,24,39,0.14);
       z-index: 9999;
 
-      /* Vertical stack */
       flex-direction: column;
       gap: 6px;
       align-items: stretch;
@@ -95,215 +94,149 @@
     }
 
     /* =========================
-       ✅ SERVICE MODAL (Services cards "open up")
+       ✅ MOBILE NAV — REAL DRAWER (NEW)
+       - right side slide-in
+       - overlay closes
+       - full height, scroll
        ========================= */
-    .service-modal{
+    .menu-drawer{
       position: fixed;
       inset: 0;
-      display: none;
-      z-index: 99999;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms ease;
     }
-    .service-modal.is-open{ display: block; }
+    .menu-drawer:target{
+      opacity: 1;
+      pointer-events: auto;
+    }
 
-    .service-modal__backdrop{
+    /* overlay click area */
+    .menu-overlay{
       position: absolute;
       inset: 0;
-      background: rgba(10, 10, 10, 0.55);
-      backdrop-filter: blur(6px);
+      background: rgba(11,11,16,0.65);
+      backdrop-filter: blur(2px);
     }
 
-    .service-modal__panel{
-      position: relative;
-      width: min(920px, calc(100% - 28px));
-      margin: 7vh auto;
-      background: var(--surface, #fff);
-      border-radius: 22px;
-      border: 1px solid rgba(17,24,39,0.10);
-      box-shadow: 0 24px 70px rgba(0,0,0,0.25);
-      overflow: hidden;
-      transform: translateY(10px);
-      animation: serviceModalIn .18s ease-out forwards;
-    }
-
-    @keyframes serviceModalIn{
-      to { transform: translateY(0); }
-    }
-
-    .service-modal__close{
+    /* drawer panel */
+    .menu-panel{
       position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 42px;
-      height: 42px;
-      border-radius: 999px;
-      border: 1px solid rgba(0,0,0,0.10);
-      background: rgba(255,255,255,0.9);
-      font-size: 26px;
-      line-height: 1;
-      cursor: pointer;
-    }
-
-    .service-modal__body{
-      display: grid;
-      grid-template-columns: 1.1fr 1fr;
-      gap: 18px;
-      padding: 18px;
-    }
-
-    .service-modal__media img{
-      width: 100%;
+      top: 0;
+      right: 0;
       height: 100%;
-      max-height: 420px;
-      object-fit: cover;
-      border-radius: 18px;
-    }
-
-    .service-modal__meta{
+      width: min(420px, 86vw);
+      background: var(--surface, #111);
+      border-left: 1px solid rgba(231,179,194,0.20);
+      box-shadow: -30px 0 80px rgba(0,0,0,0.55);
+      transform: translateX(105%);
+      transition: transform 220ms ease;
       display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    .menu-drawer:target .menu-panel{
+      transform: translateX(0);
+    }
+
+    /* header */
+    .menu-head{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
       gap: 10px;
-      margin: 10px 0 12px;
-      color: var(--muted, #6b7280);
-      font-weight: 700;
+      padding: 10px 6px 12px;
+      border-bottom: 1px solid rgba(231,179,194,0.14);
     }
-
-    .service-modal__desc{
-      margin: 0 0 10px;
-      color: var(--text, #111827);
-    }
-
-    .service-modal__more{
-      margin: 0 0 16px;
-      color: rgba(17,24,39,0.75);
-    }
-
-    .service-modal__actions{
-      display: flex;
+    .menu-brand{
+      display:flex;
+      align-items:center;
       gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    @media (max-width: 820px){
-      .service-modal__body{ grid-template-columns: 1fr; }
-      .service-modal__panel{ margin: 4vh auto; }
-    }
-
-    @media (prefers-color-scheme: dark){
-      .service-modal__panel{
-        background: rgba(15, 23, 42, 0.92);
-        border: 1px solid rgba(255,255,255,0.12);
-      }
-      .service-modal__close{
-        background: rgba(255,255,255,0.10);
-        border-color: rgba(255,255,255,0.14);
-        color: #f9fafb;
-      }
-      .service-modal__desc{ color: #f9fafb; }
-      .service-modal__more{ color: rgba(249,250,251,0.78); }
-    }
-
-    /* =========================
-       ✅ INFO MODAL (Guide/Policies/Aftercare cards)
-       ========================= */
-    .info-modal{
-      position: fixed;
-      inset: 0;
-      display: none;
-      z-index: 99998;
-    }
-    .info-modal.is-open{ display:block; }
-
-    .info-modal__backdrop{
-      position: absolute;
-      inset: 0;
-      background: rgba(10, 10, 10, 0.55);
-      backdrop-filter: blur(6px);
-    }
-
-    .info-modal__panel{
-      position: relative;
-      width: min(720px, calc(100% - 28px));
-      margin: 10vh auto;
-      background: var(--surface, #fff);
-      border-radius: 22px;
-      border: 1px solid rgba(17,24,39,0.10);
-      box-shadow: 0 24px 70px rgba(0,0,0,0.25);
-      overflow: hidden;
-      transform: translateY(10px);
-      animation: serviceModalIn .18s ease-out forwards;
-    }
-
-    .info-modal__close{
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 42px;
-      height: 42px;
-      border-radius: 999px;
-      border: 1px solid rgba(0,0,0,0.10);
-      background: rgba(255,255,255,0.9);
-      font-size: 26px;
-      line-height: 1;
-      cursor: pointer;
-    }
-
-    .info-modal__body{
-      padding: 18px;
-    }
-
-    .info-modal__pill{
-      display: inline-block;
-      font-size: 12px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(200,162,122,0.18);
-      margin-bottom: 10px;
-    }
-
-    .info-modal__title{
       font-family: var(--font-display, "Playfair Display", serif);
-      margin: 0 0 10px;
+      font-weight: 950;
       letter-spacing: -0.02em;
     }
-
-    .info-modal__desc{
-      margin: 0 0 12px;
-      color: rgba(17,24,39,0.78);
-      line-height: 1.6;
+    .menu-star{
+      width: 36px;
+      height: 36px;
+      border-radius: 14px;
+      display:grid;
+      place-items:center;
+      background: rgba(231,179,194,0.12);
+      border: 1px solid rgba(231,179,194,0.22);
+      box-shadow: 0 10px 26px rgba(0,0,0,0.24);
     }
 
-    .info-modal__list{
-      margin: 0;
-      padding-left: 18px;
-      color: rgba(17,24,39,0.78);
-      line-height: 1.7;
+    .menu-close{
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display:grid;
+      place-items:center;
+      border: 1px solid rgba(231,179,194,0.22);
+      background: rgba(247,247,251,0.06);
+      color: var(--text, #fff);
+      font-weight: 950;
+      font-size: 20px;
+      text-decoration: none;
+    }
+    .menu-close:hover{
+      transform: translateY(-1px);
+      background: rgba(231,179,194,0.10);
     }
 
-    .info-modal__actions{
-      margin-top: 16px;
-      display:flex;
+    /* links */
+    .menu-links{
+      padding: 14px 4px 0;
+      display: grid;
       gap: 10px;
-      flex-wrap: wrap;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
     }
 
-    @media (prefers-color-scheme: dark){
-      .info-modal__panel{
-        background: rgba(15, 23, 42, 0.92);
-        border: 1px solid rgba(255,255,255,0.12);
-      }
-      .info-modal__close{
-        background: rgba(255,255,255,0.10);
-        border-color: rgba(255,255,255,0.14);
-        color: #f9fafb;
-      }
-      .info-modal__desc, .info-modal__list{ color: rgba(249,250,251,0.78); }
-      .info-modal__title{ color: #f9fafb; }
+    .menu-links a{
+      padding: 12px 12px;
+      border-radius: 16px;
+      font-weight: 900;
+      color: var(--text, #fff);
+      background: rgba(247,247,251,0.03);
+      border: 1px solid rgba(231,179,194,0.14);
+      text-decoration: none;
+    }
+    .menu-links a:hover{
+      background: rgba(231,179,194,0.10);
+      border-color: rgba(231,179,194,0.30);
+      transform: translateY(-1px);
     }
 
-    /* Make info cards feel clickable */
-    .info-card{ cursor: pointer; }
-    .info-card:focus{ outline: 2px solid rgba(200,162,122,0.7); outline-offset: 4px; border-radius: 18px; }
+    /* actions */
+    .menu-actions{
+      padding: 12px 4px 8px;
+      display:grid;
+      gap: 10px;
+      border-top: 1px solid rgba(231,179,194,0.14);
+    }
+    .menu-actions .button{
+      width: 100%;
+      justify-content: center;
+    }
+
+    .menu-mini{
+      padding: 8px 6px 0;
+      color: rgba(247,247,251,0.70);
+      font-size: 13px;
+    }
+    .menu-mini a{
+      color: rgba(247,247,251,0.70);
+      text-decoration: underline;
+    }
+
+    /* desktop: hide drawer */
+    @media (min-width: 900px){
+      .menu-drawer{ display:none; }
+    }
   </style>
 </head>
 
@@ -326,6 +259,7 @@
         <a href="#gallery">Gallery</a>
         <a href="#booking-form">Booking</a>
 
+        <!-- ✅ Dropdown -->
         <details class="nav-drop" id="moreMenu">
           <summary class="nav-drop__btn" aria-label="Open more links">
             More <span aria-hidden="true">▾</span>
@@ -345,41 +279,57 @@
 
         <a class="button button-outline nav-auth" href="#auth-modal">Login</a>
 
-        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">
-          ☾
-        </button>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">☾</button>
 
         <a class="button nav-cta" href="#booking-form">Book Now</a>
       </nav>
 
+      <!-- Mobile menu trigger -->
       <a class="menu-btn" href="#menu" aria-label="Open menu">☰</a>
     </div>
   </header>
 
   <!-- =========================
-       MOBILE MENU
+       MOBILE MENU (REAL DRAWER ✅)
        ========================= -->
-  <section id="menu" class="menu-drawer" aria-label="Mobile menu">
-    <div class="menu-panel">
-      <a class="modal-close" href="#" aria-label="Close menu">×</a>
+  <section id="menu" class="menu-drawer" aria-label="Mobile menu" aria-hidden="true">
+    <!-- overlay closes -->
+    <a class="menu-overlay" href="#top" aria-label="Close menu overlay"></a>
 
-      <a href="#services">Services</a>
-      <a href="#service-guide">Service Guide</a>
-      <a href="#gallery">Gallery</a>
-      <a href="#reviews">Reviews</a>
-      <a href="#process">Process</a>
-      <a href="#policies">Policies</a>
-      <a href="#about">About</a>
-      <a href="#aftercare">Aftercare</a>
-      <a href="#faq">FAQ</a>
-      <a href="#slider">Fun Facts</a>
-      <a href="#privacy">Privacy</a>
-      <a href="#terms">Terms</a>
+    <div class="menu-panel" role="dialog" aria-modal="true" aria-label="Mobile navigation">
+      <div class="menu-head">
+        <div class="menu-brand">
+          <span class="menu-star" aria-hidden="true">✦</span>
+          <span>Luxury Nail Studio</span>
+        </div>
 
-      <a class="button button-outline" href="#auth-modal">Login</a>
-      <a class="button" href="#booking-form">Book Appointment</a>
+        <a class="menu-close" href="#top" aria-label="Close menu">×</a>
+      </div>
 
-      <a class="button button-outline" href="#" id="openCookieSettingsMobile">Manage Cookies</a>
+      <div class="menu-links" role="menu" aria-label="Menu links">
+        <a role="menuitem" href="#services">Services</a>
+        <a role="menuitem" href="#service-guide">Service Guide</a>
+        <a role="menuitem" href="#gallery">Gallery</a>
+        <a role="menuitem" href="#reviews">Reviews</a>
+        <a role="menuitem" href="#process">Process</a>
+        <a role="menuitem" href="#policies">Policies</a>
+        <a role="menuitem" href="#about">About</a>
+        <a role="menuitem" href="#aftercare">Aftercare</a>
+        <a role="menuitem" href="#faq">FAQ</a>
+        <a role="menuitem" href="#slider">Fun Facts</a>
+        <a role="menuitem" href="#privacy">Privacy</a>
+        <a role="menuitem" href="#terms">Terms</a>
+      </div>
+
+      <div class="menu-actions">
+        <a class="button button-outline" href="#auth-modal">Login</a>
+        <a class="button" href="#booking-form">Book Appointment</a>
+        <a class="button button-outline" href="#top" id="openCookieSettingsMobile">Manage Cookies</a>
+      </div>
+
+      <div class="menu-mini">
+        <a href="#top">Back to top ↑</a>
+      </div>
     </div>
   </section>
 
@@ -437,7 +387,7 @@
     </section>
 
     <!-- =========================
-         SERVICES (✅ Cards now open modal)
+         SERVICES
          ========================= -->
     <section class="section" id="services">
       <div class="container">
@@ -447,71 +397,43 @@
         </p>
 
         <div class="services-grid">
-          <article class="card service-card" data-reveal data-delay="0"
-            data-title="Manicure"
-            data-price="£45"
-            data-duration="45 min"
-            data-desc="Clean cuticles, shaping, and a glossy, breathable finish."
-            data-img="./images/g4.png"
-            data-service="manicure"
-            data-more="Includes cuticle care + shaping + luxury finish. Add chrome, gems or minimal art as an add-on.">
+          <article class="card" data-reveal data-delay="0">
             <h3>Manicure</h3>
             <div class="service-meta"><span>£45</span><span>45 min</span></div>
             <div class="service-img"><img src="./images/g4.png" alt="Manicure style nails" /></div>
             <p>Clean cuticles, shaping, and a glossy, breathable finish.</p>
-            <button class="button button-outline service-open" type="button">View</button>
+            <a class="button button-outline" href="#booking-form">Book</a>
           </article>
 
-          <article class="card service-card" data-reveal data-delay="80"
-            data-title="Gel nails"
-            data-price="£65"
-            data-duration="60 min"
-            data-desc="Long-lasting shine with a flexible, chip-resistant gel overlay."
-            data-img="./images/g1.png"
-            data-service="gel"
-            data-more="Perfect for natural nails. Strong glossy overlay that lasts 2–3 weeks with good aftercare.">
+          <article class="card" data-reveal data-delay="80">
             <h3>Gel nails</h3>
             <div class="service-meta"><span>£65</span><span>60 min</span></div>
             <div class="service-img"><img src="./images/g1.png" alt="Gel nails set" /></div>
             <p>Long-lasting shine with a flexible, chip-resistant gel overlay.</p>
-            <button class="button button-outline service-open" type="button">View</button>
+            <a class="button button-outline" href="#booking-form">Book</a>
           </article>
 
-          <article class="card service-card" data-reveal data-delay="160"
-            data-title="Acrylics"
-            data-price="£80"
-            data-duration="75 min"
-            data-desc="Structured extensions with clean sculpting and luxury polish."
-            data-img="./images/g2.png"
-            data-service="acrylics"
-            data-more="Great for added length + shape. Best booked with enough time if you want complex designs.">
+          <article class="card" data-reveal data-delay="160">
             <h3>Acrylics</h3>
             <div class="service-meta"><span>£80</span><span>75 min</span></div>
             <div class="service-img"><img src="./images/g2.png" alt="Acrylic nails set" /></div>
             <p>Structured extensions with clean sculpting and luxury polish.</p>
-            <button class="button button-outline service-open" type="button">View</button>
+            <a class="button button-outline" href="#booking-form">Book</a>
           </article>
 
-          <article class="card service-card" data-reveal data-delay="240"
-            data-title="Nail art add-ons"
-            data-price="£15+"
-            data-duration="15–30 min"
-            data-desc="Minimal line work, chrome accents, or soft floral details."
-            data-img="./images/g3.png"
-            data-service="nail-art"
-            data-more="Add this to any service. Price depends on complexity (simple accents → full custom set).">
+          <article class="card" data-reveal data-delay="240">
             <h3>Nail art add-ons</h3>
             <div class="service-meta"><span>£15+</span><span>15–30 min</span></div>
             <div class="service-img"><img src="./images/g3.png" alt="Nail art details" /></div>
             <p>Minimal line work, chrome accents, or soft floral details.</p>
-            <button class="button button-outline service-open" type="button">View</button>
+            <a class="button button-outline" href="#booking-form">Book</a>
           </article>
         </div>
       </div>
     </section>
 
     <!-- =========================
-         SERVICE GUIDE (✅ Cards open info modal)
+         SERVICE GUIDE
          ========================= -->
     <section class="service-guide" id="service-guide">
       <div class="service-guide__inner">
@@ -524,11 +446,7 @@
         </header>
 
         <div class="service-guide__grid">
-          <div class="service-guide__card info-card" tabindex="0" role="button"
-            data-info-pill="Guide"
-            data-info-title="Gel Polish"
-            data-info-desc="Ideal if you want something neat, glossy, and low-maintenance."
-            data-info-list="Natural nails|Short-term wear|Clean & simple look">
+          <div class="service-guide__card">
             <h3>Gel Polish</h3>
             <p class="service-guide__for">Best for:</p>
             <ul>
@@ -539,11 +457,7 @@
             <p class="service-guide__note">Ideal if you want something neat, glossy, and low-maintenance.</p>
           </div>
 
-          <div class="service-guide__card info-card" tabindex="0" role="button"
-            data-info-pill="Guide"
-            data-info-title="BIAB / Builder Gel"
-            data-info-desc="Perfect for strength without added length."
-            data-info-list="Weak or bendy nails|Natural but strong look|Growing your own nails">
+          <div class="service-guide__card">
             <h3>BIAB / Builder Gel</h3>
             <p class="service-guide__for">Best for:</p>
             <ul>
@@ -554,11 +468,7 @@
             <p class="service-guide__note">Perfect for strength without added length.</p>
           </div>
 
-          <div class="service-guide__card info-card" tabindex="0" role="button"
-            data-info-pill="Guide"
-            data-info-title="Acrylic Full Set"
-            data-info-desc="Great if you want long-lasting nails with custom shapes."
-            data-info-list="Added length|Durability|Statement nails">
+          <div class="service-guide__card">
             <h3>Acrylic Full Set</h3>
             <p class="service-guide__for">Best for:</p>
             <ul>
@@ -569,11 +479,7 @@
             <p class="service-guide__note">Great if you want long-lasting nails with custom shapes.</p>
           </div>
 
-          <div class="service-guide__card info-card" tabindex="0" role="button"
-            data-info-pill="Guide"
-            data-info-title="Nail Art / Custom Design"
-            data-info-desc="Ideal for birthdays, events, or when you want extra detail."
-            data-info-list="Special occasions|Bold designs|Personalised sets">
+          <div class="service-guide__card">
             <h3>Nail Art / Custom Design</h3>
             <p class="service-guide__for">Best for:</p>
             <ul>
@@ -707,7 +613,7 @@
     </section>
 
     <!-- =========================
-         POLICIES (✅ Cards open info modal)
+         POLICIES
          ========================= -->
     <section class="section" id="policies">
       <div class="container">
@@ -715,35 +621,19 @@
         <p class="section-subtitle reveal" data-reveal data-delay="80">Clear expectations = smooth appointments for everyone.</p>
 
         <div class="why-grid">
-          <div class="card reveal info-card" data-reveal tabindex="0" role="button"
-            data-info-pill="Policies"
-            data-info-title="Cancellation"
-            data-info-desc="Please give 24 hours notice. Late cancellations may lose deposit."
-            data-info-list="Cancel at least 24 hours before|Late cancellations may lose deposit|Message ASAP if anything changes">
+          <div class="card reveal" data-reveal>
             <h3>Cancellation</h3>
             <p class="tiny">Please give 24 hours notice. Late cancellations may lose deposit.</p>
           </div>
-          <div class="card reveal info-card" data-reveal data-delay="120" tabindex="0" role="button"
-            data-info-pill="Policies"
-            data-info-title="Late arrivals"
-            data-info-desc="10+ minutes late may shorten the service or require rescheduling."
-            data-info-list="10+ minutes late may shorten service|May need reschedule if fully booked|Please message if running late">
+          <div class="card reveal" data-reveal data-delay="120">
             <h3>Late arrivals</h3>
             <p class="tiny">10+ minutes late may shorten the service or require rescheduling.</p>
           </div>
-          <div class="card reveal info-card" data-reveal data-delay="240" tabindex="0" role="button"
-            data-info-pill="Policies"
-            data-info-title="Deposits"
-            data-info-desc="A small deposit may be requested to secure peak-time slots."
-            data-info-list="Secures your slot|Helps prevent no-shows|Goes toward your total (when applicable)">
+          <div class="card reveal" data-reveal data-delay="240">
             <h3>Deposits</h3>
             <p class="tiny">A small deposit may be requested to secure peak-time slots.</p>
           </div>
-          <div class="card reveal info-card" data-reveal data-delay="360" tabindex="0" role="button"
-            data-info-pill="Policies"
-            data-info-title="Repairs"
-            data-info-desc="Contact within 48 hours for a fix if there’s an issue."
-            data-info-list="Contact within 48 hours|Send a clear photo/video|We’ll advise the quickest fix">
+          <div class="card reveal" data-reveal data-delay="360">
             <h3>Repairs</h3>
             <p class="tiny">Contact within 48 hours for a fix if there’s an issue.</p>
           </div>
@@ -807,7 +697,7 @@
     </section>
 
     <!-- =========================
-         AFTERCARE (✅ Cards open info modal)
+         AFTERCARE
          ========================= -->
     <section class="aftercare" id="aftercare">
       <div class="aftercare__inner">
@@ -820,41 +710,25 @@
         </header>
 
         <div class="aftercare__grid">
-          <div class="aftercare__card info-card" tabindex="0" role="button"
-            data-info-pill="Aftercare"
-            data-info-title="Don’t use nails as tools"
-            data-info-desc="Avoid opening cans, scratching surfaces, or picking at hard objects with your nails."
-            data-info-list="Use a key or tool instead|Avoid pulling tabs/labels|Prevents lifting + breaks">
+          <div class="aftercare__card">
             <span class="aftercare__icon" aria-hidden="true">✦</span>
             <h3>Don’t use nails as tools</h3>
             <p>Avoid opening cans, scratching surfaces, or picking at hard objects with your nails.</p>
           </div>
 
-          <div class="aftercare__card info-card" tabindex="0" role="button"
-            data-info-pill="Aftercare"
-            data-info-title="Wear gloves for cleaning"
-            data-info-desc="Harsh chemicals and hot water can weaken your nails and cause lifting."
-            data-info-list="Gloves protect from chemicals|Hot water can loosen product|Helps sets last longer">
+          <div class="aftercare__card">
             <span class="aftercare__icon" aria-hidden="true">✦</span>
             <h3>Wear gloves for cleaning</h3>
             <p>Harsh chemicals and hot water can weaken your nails and cause lifting.</p>
           </div>
 
-          <div class="aftercare__card info-card" tabindex="0" role="button"
-            data-info-pill="Aftercare"
-            data-info-title="Use cuticle oil daily"
-            data-info-desc="Applying cuticle oil keeps your nails flexible, healthy, and glossy."
-            data-info-list="Use daily (best at night)|Massage into cuticles|Hydration = better retention">
+          <div class="aftercare__card">
             <span class="aftercare__icon" aria-hidden="true">✦</span>
             <h3>Use cuticle oil daily</h3>
             <p>Applying cuticle oil keeps your nails flexible, healthy, and glossy.</p>
           </div>
 
-          <div class="aftercare__card info-card" tabindex="0" role="button"
-            data-info-pill="Aftercare"
-            data-info-title="Book infills on time"
-            data-info-desc="We recommend infills every 2–3 weeks to maintain structure and prevent breakage."
-            data-info-list="Infills every 2–3 weeks|Prevents stress on nails|Keeps shape + strength">
+          <div class="aftercare__card">
             <span class="aftercare__icon" aria-hidden="true">✦</span>
             <h3>Book infills on time</h3>
             <p>We recommend infills every 2–3 weeks to maintain structure and prevent breakage.</p>
@@ -1157,7 +1031,7 @@
           <li><a href="#policies">Policies</a></li>
           <li><a href="#privacy">Privacy</a></li>
           <li><a href="#terms">Terms</a></li>
-          <li><a href="#" id="openCookieSettings">Manage Cookies</a></li>
+          <li><a href="#top" id="openCookieSettings">Manage Cookies</a></li>
           <li><a href="#top">Back to top</a></li>
         </ul>
       </nav>
@@ -1184,9 +1058,8 @@
 
     <div class="footer-bottom">
       <span class="footer-copy">© 2026 Luxury Nail Studio</span>
-
       <span class="footer-made">
-        Made by <a class="footer-vantex" href="#" aria-label="Made by Team Vantex">Team VANTEX</a>
+        Made by <a class="footer-vantex" href="#" aria-label="Made by Vantex">VANTEX</a>
       </span>
     </div>
   </footer>
@@ -1196,7 +1069,7 @@
        ========================= -->
   <section class="auth-modal" id="auth-modal" aria-labelledby="auth-title">
     <div class="auth-panel" role="dialog" aria-modal="true" aria-label="Login or Sign up">
-      <a class="modal-close" href="#" aria-label="Close">×</a>
+      <a class="modal-close" href="#top" aria-label="Close">×</a>
 
       <div class="auth-head">
         <h2 id="auth-title">Welcome back</h2>
@@ -1330,262 +1203,38 @@
     </div>
   </div>
 
-  <!-- =========================
-       ✅ SERVICE MODAL
-       ========================= -->
-  <div class="service-modal" id="serviceModal" aria-hidden="true">
-    <div class="service-modal__backdrop" data-service-close="true"></div>
-
-    <div class="service-modal__panel" role="dialog" aria-modal="true" aria-labelledby="serviceModalTitle">
-      <button class="service-modal__close" type="button" aria-label="Close" data-service-close="true">×</button>
-
-      <div class="service-modal__body">
-        <div class="service-modal__media">
-          <img id="serviceModalImg" src="" alt="">
-        </div>
-
-        <div class="service-modal__content">
-          <h3 id="serviceModalTitle"></h3>
-
-          <div class="service-modal__meta">
-            <span id="serviceModalPrice"></span>
-            <span id="serviceModalDuration"></span>
-          </div>
-
-          <p id="serviceModalDesc" class="service-modal__desc"></p>
-          <p id="serviceModalMore" class="service-modal__more"></p>
-
-          <div class="service-modal__actions">
-            <button class="button" id="serviceModalBook" type="button">Book this service</button>
-            <button class="button button-outline" type="button" data-service-close="true">Close</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- =========================
-       ✅ INFO MODAL (Guide/Policies/Aftercare)
-       ========================= -->
-  <div class="info-modal" id="infoModal" aria-hidden="true">
-    <div class="info-modal__backdrop" data-info-close="true"></div>
-
-    <div class="info-modal__panel" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
-      <button class="info-modal__close" type="button" aria-label="Close" data-info-close="true">×</button>
-
-      <div class="info-modal__body">
-        <span id="infoModalPill" class="info-modal__pill">Info</span>
-        <h3 id="infoModalTitle" class="info-modal__title"></h3>
-        <p id="infoModalDesc" class="info-modal__desc"></p>
-        <ul id="infoModalList" class="info-modal__list"></ul>
-
-        <div class="info-modal__actions">
-          <a class="button" href="#booking-form" id="infoModalBookLink">Book now</a>
-          <button class="button button-outline" type="button" data-info-close="true">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- External JS -->
   <script src="script.js" defer></script>
 
-  <!-- ✅ Helpers: dropdown close + cookies + service modal + info modal -->
+  <!-- ✅ helpers: close More when click outside + open cookie settings + close mobile menu on link click -->
   <script>
-    // Close More dropdown when clicking outside + open cookie settings
     document.addEventListener("click", (e) => {
+      // Close "More" dropdown when clicking outside
       const moreMenu = document.getElementById("moreMenu");
       if (moreMenu && moreMenu.open && !moreMenu.contains(e.target)) {
         moreMenu.removeAttribute("open");
       }
 
-      const t = e.target;
-      if (!t) return;
-
-      if (t.id === "openCookieSettings" || t.id === "openCookieSettingsMobile") {
+      // Open cookie settings from footer/mobile links
+      const t = e.target.closest("#openCookieSettings, #openCookieSettingsMobile");
+      if (t) {
         e.preventDefault();
+        location.hash = "#top"; // closes mobile menu if open
         const manageBtn = document.querySelector('[data-cookie="manage"]');
         manageBtn?.click();
+        return;
+      }
+
+      // Close mobile menu when any menu link/action is clicked
+      const mobileLink = e.target.closest("#menu .menu-links a, #menu .menu-actions a");
+      if (mobileLink) {
+        // let anchor scroll, then clear hash away from #menu
+        setTimeout(() => {
+          if (location.hash === "#menu") location.hash = "#top";
+        }, 10);
       }
     });
-
-    // ✅ Services modal logic (FIXED Book button)
-    (() => {
-      "use strict";
-
-      const modal = document.getElementById("serviceModal");
-      if (!modal) return;
-
-      const titleEl = document.getElementById("serviceModalTitle");
-      const priceEl = document.getElementById("serviceModalPrice");
-      const durEl = document.getElementById("serviceModalDuration");
-      const descEl = document.getElementById("serviceModalDesc");
-      const moreEl = document.getElementById("serviceModalMore");
-      const imgEl = document.getElementById("serviceModalImg");
-      const bookBtn = document.getElementById("serviceModalBook");
-
-      let lastFocus = null;
-      let selectedValue = "";
-
-      function openModalFromCard(card){
-        const title = card.dataset.title || "";
-        const price = card.dataset.price || "";
-        const duration = card.dataset.duration || "";
-        const desc = card.dataset.desc || "";
-        const more = card.dataset.more || "";
-        const img = card.dataset.img || "";
-        selectedValue = card.dataset.service || "";
-
-        titleEl.textContent = title;
-        priceEl.textContent = price;
-        durEl.textContent = duration;
-        descEl.textContent = desc;
-        moreEl.textContent = more;
-
-        imgEl.src = img;
-        imgEl.alt = title || "Service";
-
-        lastFocus = document.activeElement;
-        modal.classList.add("is-open");
-        modal.setAttribute("aria-hidden", "false");
-        document.body.style.overflow = "hidden";
-
-        modal.querySelector(".service-modal__close")?.focus();
-      }
-
-      function closeModal(){
-        modal.classList.remove("is-open");
-        modal.setAttribute("aria-hidden", "true");
-        document.body.style.overflow = "";
-        if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
-      }
-
-      document.addEventListener("click", (e) => {
-        const closeHit = e.target.closest("[data-service-close='true']");
-        if (closeHit && modal.classList.contains("is-open")) {
-          closeModal();
-          return;
-        }
-
-        const card = e.target.closest(".service-card");
-        if (!card) return;
-
-        if (window.getSelection && String(window.getSelection()).length) return;
-
-        if (
-          e.target.closest(".service-open") ||
-          e.target.closest(".service-img") ||
-          e.target.closest("h3") ||
-          e.target.closest("p") ||
-          e.target === card
-        ) {
-          e.preventDefault();
-          openModalFromCard(card);
-        }
-      });
-
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
-      });
-
-      // ✅ FIX: booking form is :target modal, so we MUST set hash
-      bookBtn.addEventListener("click", () => {
-        closeModal();
-
-        // open booking modal
-        location.hash = "#booking-form";
-
-        // set service after hash opens the modal
-        setTimeout(() => {
-          const serviceSelect = document.getElementById("service");
-          if (serviceSelect && selectedValue) {
-            serviceSelect.value = selectedValue;
-            serviceSelect.dispatchEvent(new Event("change", { bubbles: true }));
-          }
-        }, 60);
-      });
-    })();
-
-    // ✅ Info modal logic (Guide/Policies/Aftercare)
-    (() => {
-      "use strict";
-
-      const modal = document.getElementById("infoModal");
-      if (!modal) return;
-
-      const pillEl = document.getElementById("infoModalPill");
-      const titleEl = document.getElementById("infoModalTitle");
-      const descEl = document.getElementById("infoModalDesc");
-      const listEl = document.getElementById("infoModalList");
-
-      let lastFocus = null;
-
-      function openInfo(card){
-        const pill = card.dataset.infoPill || "Info";
-        const title = card.dataset.infoTitle || "";
-        const desc = card.dataset.infoDesc || "";
-        const list = (card.dataset.infoList || "").split("|").map(s => s.trim()).filter(Boolean);
-
-        pillEl.textContent = pill;
-        titleEl.textContent = title;
-        descEl.textContent = desc;
-
-        listEl.innerHTML = "";
-        list.forEach(item => {
-          const li = document.createElement("li");
-          li.textContent = item;
-          listEl.appendChild(li);
-        });
-
-        lastFocus = document.activeElement;
-        modal.classList.add("is-open");
-        modal.setAttribute("aria-hidden", "false");
-        document.body.style.overflow = "hidden";
-
-        modal.querySelector(".info-modal__close")?.focus();
-      }
-
-      function closeInfo(){
-        modal.classList.remove("is-open");
-        modal.setAttribute("aria-hidden", "true");
-        document.body.style.overflow = "";
-        if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
-      }
-
-      document.addEventListener("click", (e) => {
-        const closeHit = e.target.closest("[data-info-close='true']");
-        if (closeHit && modal.classList.contains("is-open")) {
-          closeInfo();
-          return;
-        }
-
-        const card = e.target.closest(".info-card");
-        if (!card) return;
-
-        // ignore selecting text
-        if (window.getSelection && String(window.getSelection()).length) return;
-
-        // don’t open when clicking links/buttons inside card (if any)
-        if (e.target.closest("a") || e.target.closest("button")) return;
-
-        openInfo(card);
-      });
-
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && modal.classList.contains("is-open")) closeInfo();
-      });
-
-      // Keyboard open (Enter/Space)
-      document.addEventListener("keydown", (e) => {
-        const focused = document.activeElement;
-        if (!focused || !focused.classList || !focused.classList.contains("info-card")) return;
-
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openInfo(focused);
-        }
-      });
-    })();
   </script>
 </body>
 </html>
+
