@@ -23,21 +23,24 @@ console.log("✅ script.js loaded");
         localStorage.setItem(key, value);
       } catch {}
     },
-    remove(key) {
-      try {
-        localStorage.removeItem(key);
-      } catch {}
-    },
   };
 
-  // ✅ Backend base (GitHub Pages = production, otherwise local)
-  const BACKEND = location.hostname.includes("github.io")
-    ? "https://luxury-nail-backend.onrender.com"
-    : "http://localhost:8080";
+  // =========================
+  // Backend base
+  // =========================
+  const isFile = location.protocol === "file:";
+  const BACKEND =
+    location.hostname.includes("github.io")
+      ? "https://luxury-nail-backend.onrender.com"
+      : "http://localhost:8080";
 
+  // =========================
+  // DOM Ready
+  // =========================
   document.addEventListener("DOMContentLoaded", () => {
     themeToggleInit();
     navDropdownInit();
+    mobileMenuInit();        // ✅ FIXED mobile drawer
     revealInit();
     bookingInit();
     authTabsInit();
@@ -45,36 +48,7 @@ console.log("✅ script.js loaded");
     sliderInit();
     cookieInit();
     lightboxInit();
-
-    // ✅ NEW: close booking modal on blank overlay click + ESC
-    bookingModalCloseOnBlankClickInit();
   });
-
-  // =========================
-  // ✅ Booking Modal Close (Overlay Click + ESC)
-  // Works with your :target hash modal (#booking-form)
-  // =========================
-  function bookingModalCloseOnBlankClickInit() {
-    const modal = $("#booking-form");            // <section id="booking-form" class="booking-modal">
-    const panel = $(".booking-panel", modal);    // inner card
-    if (!modal || !panel) return;
-
-    const close = () => {
-      // matches your close button behaviour
-      location.hash = "#services";
-    };
-
-    // ✅ Close ONLY when clicking the overlay itself (outside the panel)
-    modal.addEventListener("click", (e) => {
-      // If you clicked directly on the modal overlay, close
-      if (e.target === modal) close();
-    });
-
-    // ✅ ESC closes (only if booking modal is currently targeted)
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && location.hash === "#booking-form") close();
-    });
-  }
 
   // =========================
   // Theme Toggle
@@ -98,7 +72,11 @@ console.log("✅ script.js loaded");
       return !!deviceDark?.matches;
     };
 
-    const setIcon = () => (btn.textContent = isDarkNow() ? "☀️" : "🌙");
+    const setIcon = () => {
+      btn.textContent = isDarkNow() ? "☀️" : "🌙";
+      btn.setAttribute("aria-label", isDarkNow() ? "Switch to light theme" : "Switch to dark theme");
+    };
+
     setIcon();
 
     btn.addEventListener("click", () => {
@@ -117,7 +95,7 @@ console.log("✅ script.js loaded");
   // Nav dropdown <details>
   // =========================
   function navDropdownInit() {
-    const drop = $(".nav-drop");
+    const drop = $("#moreMenu") || $(".nav-drop");
     if (!drop) return;
 
     drop.addEventListener("click", (e) => {
@@ -136,31 +114,129 @@ console.log("✅ script.js loaded");
   }
 
   // =========================
+  // ✅ MOBILE MENU DRAWER (THIS IS THE REAL FIX)
+  // Works with your HTML:
+  // #menuDrawer, #menuOpen, #menuClose
+  // =========================
+  function mobileMenuInit() {
+    const drawer = $("#menuDrawer");
+    const openBtn = $("#menuOpen");
+    const closeBtn = $("#menuClose");
+    if (!drawer || !openBtn || !closeBtn) return;
+
+    const panel = $(".menu-panel", drawer);
+    const focusablesSel =
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    let lastFocus = null;
+
+    // 🔥 Make sure drawer actually hides/shows even if your CSS is still old
+    // (so you’re not stuck on the #menu:target system)
+    const forceBaseStyles = () => {
+      // If your CSS already handles it, these won’t hurt.
+      drawer.style.display = drawer.classList.contains("is-open") ? "block" : "none";
+    };
+
+    const setOpen = (open) => {
+      drawer.classList.toggle("is-open", open);
+      drawer.setAttribute("aria-hidden", open ? "false" : "true");
+      openBtn.setAttribute("aria-expanded", open ? "true" : "false");
+
+      // iOS scroll lock
+      document.body.style.overflow = open ? "hidden" : "";
+
+      forceBaseStyles();
+
+      if (open) {
+        lastFocus = document.activeElement;
+        // focus close button first
+        setTimeout(() => closeBtn.focus?.(), 0);
+      } else {
+        lastFocus?.focus?.();
+      }
+    };
+
+    // ✅ open / close
+    openBtn.addEventListener("click", () => setOpen(true));
+    closeBtn.addEventListener("click", () => setOpen(false));
+
+    // ✅ click outside panel closes
+    drawer.addEventListener("click", (e) => {
+      if (!panel) return;
+      if (!panel.contains(e.target)) setOpen(false);
+    });
+
+    // ✅ any link inside closes
+    drawer.addEventListener("click", (e) => {
+      const a = e.target.closest("a");
+      if (a) setOpen(false);
+    });
+
+    // ✅ ESC closes
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && drawer.classList.contains("is-open")) setOpen(false);
+    });
+
+    // ✅ trap focus (so it feels like a real drawer)
+    document.addEventListener("keydown", (e) => {
+      if (!drawer.classList.contains("is-open")) return;
+      if (e.key !== "Tab") return;
+
+      const focusables = $$(focusablesSel, drawer);
+      if (!focusables.length) return;
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+
+    // ✅ close drawer if user rotates / resizes to desktop
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 900 && drawer.classList.contains("is-open")) setOpen(false);
+    });
+
+    // ✅ cookie settings button inside drawer
+    $("#openCookieSettingsMobile")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      setOpen(false);
+      document.querySelector('[data-cookie="manage"]')?.click();
+    });
+
+    // initial state
+    setOpen(false);
+  }
+
+  // =========================
   // Reveal on Scroll
   // =========================
   function revealInit() {
-    document
-      .querySelectorAll(
-        [
-          ".service-guide__card",
-          ".aftercare__card",
-          ".about__point",
-          ".about__card",
-          ".service-guide__header",
-          ".service-guide__cta",
-          ".aftercare__header",
-          ".aftercare__note",
-          ".about__content",
-          ".about__cta",
-          ".faq__header",
-          ".faq__item",
-          ".footer .footer-block",
-          ".footer-bottom",
-        ].join(",")
-      )
-      .forEach((el) => {
-        if (!el.hasAttribute("data-reveal")) el.setAttribute("data-reveal", "");
-      });
+    const autoTag = [
+      ".service-guide__card",
+      ".aftercare__card",
+      ".about__point",
+      ".about__card",
+      ".service-guide__header",
+      ".service-guide__cta",
+      ".aftercare__header",
+      ".aftercare__note",
+      ".about__content",
+      ".about__cta",
+      ".faq__header",
+      ".faq__item",
+      ".footer .footer-block",
+      ".footer-bottom",
+    ].join(",");
+
+    document.querySelectorAll(autoTag).forEach((el) => {
+      if (!el.hasAttribute("data-reveal")) el.setAttribute("data-reveal", "");
+    });
 
     const els = Array.from(document.querySelectorAll('[data-reveal], .reveal, .stagger'));
     if (!els.length) return;
@@ -182,11 +258,10 @@ console.log("✅ script.js loaded");
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
-
           const el = entry.target;
+
           requestAnimationFrame(() => {
             el.classList.add("is-visible");
-
             if (el.classList.contains("stagger")) {
               Array.from(el.children).forEach((child, i) => {
                 child.style.transitionDelay = `${i * 90}ms`;
@@ -203,16 +278,8 @@ console.log("✅ script.js loaded");
     els.forEach((el) => io.observe(el));
   }
 
-  window.addEventListener("hashchange", () => {
-    setTimeout(() => {
-      try {
-        revealInit();
-      } catch {}
-    }, 60);
-  });
-
   // =========================
-  // Booking / Slots ✅ ALWAYS SHOW TIMES + LIVE UPDATES
+  // Booking / Slots
   // =========================
   function bookingInit() {
     const form = $("#bookingForm");
@@ -236,124 +303,91 @@ console.log("✅ script.js loaded");
       hide(successBox);
       hide(errorBox);
       if (!msg) return;
-      (ok ? successBox : errorBox).textContent = msg;
-      show(ok ? successBox : errorBox);
+      if (ok) {
+        successBox.textContent = msg;
+        show(successBox);
+      } else {
+        errorBox.textContent = msg;
+        show(errorBox);
+      }
     };
 
-    // ✅ Time slots fallback (so it always shows timings)
-    const FALLBACK_SLOTS = [
-      "10:00","10:30","11:00","11:30",
-      "12:00","12:30","13:00","13:30",
-      "14:00","14:30","15:00","15:30",
-      "16:00","16:30","17:00"
-    ];
+    const todayISO = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 10);
+    dateInput.min = todayISO;
 
-    const paintSlots = (arr, hint) => {
+    function resetTimeDropdown(msg) {
       timeSelect.innerHTML = `<option value="">Pick a time</option>`;
-      arr.forEach((t) => {
-        const opt = document.createElement("option");
-        opt.value = t;
-        opt.textContent = t;
-        timeSelect.appendChild(opt);
-      });
-      timeSelect.disabled = false;
-      timeHint.textContent = hint || "Choose a time to continue.";
-      toggleSubmit();
-    };
-
-    // ✅ FIX: timezone-safe min date
-    const pad = (n) => String(n).padStart(2, "0");
-    const todayLocal = new Date();
-    dateInput.min = `${todayLocal.getFullYear()}-${pad(todayLocal.getMonth() + 1)}-${pad(todayLocal.getDate())}`;
+      timeSelect.disabled = true;
+      timeHint.textContent = msg || "Pick a service + date to see available times.";
+    }
 
     function toggleSubmit() {
       if (!submitBtn) return;
-
       const fullName = form.fullName?.value?.trim();
       const email = form.clientEmail?.value?.trim();
       const contact = form.contactDetail?.value?.trim();
-      const service = (serviceSelect.value || "").trim();
-      const date = (dateInput.value || "").trim();
-      const time = (timeSelect.value || "").trim();
-
+      const service = serviceSelect.value;
+      const date = dateInput.value;
+      const time = timeSelect.value;
       submitBtn.disabled = !(fullName && email && contact && service && date && time);
     }
 
     form.addEventListener("input", toggleSubmit);
     form.addEventListener("change", toggleSubmit);
 
-    // ✅ LIVE refresh timer
-    let slotPoll = null;
+    let slotsController = null;
 
-    function startSlotPolling() {
-      stopSlotPolling();
-      slotPoll = setInterval(() => {
-        if (dateInput.value && serviceSelect.value) loadAvailableSlots();
-      }, 300000);
-    }
-
-    function stopSlotPolling() {
-      if (slotPoll) clearInterval(slotPoll);
-      slotPoll = null;
-    }
-
-    // ✅ Load slots (uses backend { slots: [...] })
     async function loadAvailableSlots() {
-      const date = (dateInput.value || "").trim();
-      const service = (serviceSelect.value || "").trim();
+      const date = dateInput.value;
+      const service = serviceSelect.value;
 
-      // Always show timings even before selection
-      if (!date || !service) {
-        paintSlots(FALLBACK_SLOTS, "Pick a service + date to confirm availability.");
-        return;
-      }
-
-      timeHint.textContent = "Loading available times...";
-      timeSelect.disabled = true;
+      resetTimeDropdown("Loading available times...");
+      if (!date || !service) return;
 
       try {
+        try { slotsController?.abort(); } catch {}
+        slotsController = new AbortController();
+
         const res = await fetch(
-          `${BACKEND}/api/slots?date=${encodeURIComponent(date)}`,
-          { cache: "no-store" }
+          `${BACKEND}/api/slots?date=${encodeURIComponent(date)}&service=${encodeURIComponent(service)}`,
+          { signal: slotsController.signal, cache: "no-store" }
         );
 
         const data = await res.json().catch(() => ({}));
-        const available = Array.isArray(data.slots) ? data.slots : [];
+        if (!res.ok) throw new Error(data.error || "Failed to load slots");
 
-        // If server fails OR returns none, still show timings
-        if (!res.ok) {
-          paintSlots(FALLBACK_SLOTS, "Couldn’t check live slots — showing all times.");
-          return;
-        }
-
+        const available = Array.isArray(data.available) ? data.available : [];
         if (!available.length) {
-          paintSlots(FALLBACK_SLOTS, "Fully booked for this date — showing all times.");
+          resetTimeDropdown("No slots left 😭");
+          toggleSubmit();
           return;
         }
 
-        paintSlots(available, "Live availability updated.");
-      } catch {
-        paintSlots(FALLBACK_SLOTS, "Server asleep/offline — showing all times.");
+        timeSelect.innerHTML = `<option value="">Pick a time</option>`;
+        available.forEach((t) => {
+          const opt = document.createElement("option");
+          opt.value = t;
+          opt.textContent = t;
+          timeSelect.appendChild(opt);
+        });
+
+        timeSelect.disabled = false;
+        timeHint.textContent = data.durationMins
+          ? `Duration: ${data.durationMins} mins`
+          : "Choose a time to continue.";
+        toggleSubmit();
+      } catch (err) {
+        if (err?.name === "AbortError") return;
+        resetTimeDropdown(isFile ? "Server not running on localhost:8080" : "Could not load slots right now.");
+        toggleSubmit();
       }
     }
 
-    serviceSelect.addEventListener("change", () => {
-      loadAvailableSlots();
-      startSlotPolling();
-    });
+    serviceSelect.addEventListener("change", loadAvailableSlots);
+    dateInput.addEventListener("change", loadAvailableSlots);
 
-    dateInput.addEventListener("change", () => {
-      loadAvailableSlots();
-      startSlotPolling();
-    });
-
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden && dateInput.value && serviceSelect.value) loadAvailableSlots();
-    });
-
-    window.addEventListener("beforeunload", stopSlotPolling);
-
-    // ✅ Submit booking
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       setStatus({ ok: true, msg: "" });
@@ -386,13 +420,8 @@ console.log("✅ script.js loaded");
         if (!res.ok) throw new Error(data.error || "Booking failed");
 
         setStatus({ ok: true, msg: "Request sent ✅ We’ll confirm your booking soon." });
-
-        // ✅ refresh slots instantly (real-time feel)
-        await loadAvailableSlots();
-
         form.reset();
-        paintSlots(FALLBACK_SLOTS, "Pick a service + date to confirm availability.");
-        toggleSubmit();
+        resetTimeDropdown();
       } catch (err) {
         setStatus({ ok: false, msg: err?.message || "Something went wrong. Try again." });
       } finally {
@@ -403,8 +432,7 @@ console.log("✅ script.js loaded");
       }
     });
 
-    // ✅ show timings immediately on open
-    loadAvailableSlots();
+    resetTimeDropdown();
     toggleSubmit();
   }
 
@@ -529,7 +557,7 @@ console.log("✅ script.js loaded");
   }
 
   // =========================
-  // Cookies (data-cookie)
+  // Cookies
   // =========================
   function cookieInit() {
     const CONSENT_KEY = "cookieConsent_v1";
@@ -616,8 +644,9 @@ console.log("✅ script.js loaded");
       if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
     });
 
+    // footer manage cookies (if you have it)
     document.addEventListener("click", (e) => {
-      const t = e.target.closest("#openCookieSettings, #openCookieSettingsMobile");
+      const t = e.target.closest("#openCookieSettings");
       if (!t) return;
       e.preventDefault();
       openModal();
@@ -651,19 +680,13 @@ console.log("✅ script.js loaded");
       img.alt = alt;
       title.textContent = t;
 
-      lightbox.classList.add("is-open");
+      lightbox.classList.add("open");
       lightbox.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
-
-      setTimeout(() => {
-        try {
-          revealInit();
-        } catch {}
-      }, 50);
     };
 
     const close = () => {
-      lightbox.classList.remove("is-open");
+      lightbox.classList.remove("open");
       lightbox.setAttribute("aria-hidden", "true");
       document.body.style.overflow = "";
     };
@@ -691,11 +714,10 @@ console.log("✅ script.js loaded");
     });
 
     document.addEventListener("keydown", (e) => {
-      if (!lightbox.classList.contains("is-open")) return;
+      if (!lightbox.classList.contains("open")) return;
       if (e.key === "Escape") close();
       if (e.key === "ArrowLeft") prev();
       if (e.key === "ArrowRight") next();
     });
   }
 })();
-
