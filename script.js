@@ -113,76 +113,94 @@ console.log("✅ script.js loaded");
     });
   }
 
-  // =========================
-  // ✅ MOBILE MENU DRAWER (THIS IS THE REAL FIX)
-  // Works with your HTML:
-  // #menuDrawer, #menuOpen, #menuClose
+    // =========================
+  // ✅ MOBILE MENU DRAWER (supports OLD + NEW HTML)
   // =========================
   function mobileMenuInit() {
-    const drawer = $("#menuDrawer");
-    const openBtn = $("#menuOpen");
-    const closeBtn = $("#menuClose");
+    // NEW HTML (button + drawer)
+    const drawerNew = $("#menuDrawer");
+    const openBtnNew = $("#menuOpen");
+    const closeBtnNew = $("#menuClose");
+
+    // OLD HTML (anchor href="#menu" + section#menu)
+    const drawerOld = $("#menu"); // your old <section id="menu" class="menu-drawer">
+    const openBtnOld = $(".menu-btn"); // old <a class="menu-btn" href="#menu">
+    const closeBtnOld = $(".menu-close", drawerOld || document);
+
+    // Pick whichever exists on the page
+    const drawer = drawerNew || drawerOld;
+    const openBtn = openBtnNew || openBtnOld;
+    const closeBtn = closeBtnNew || closeBtnOld;
+
     if (!drawer || !openBtn || !closeBtn) return;
 
     const panel = $(".menu-panel", drawer);
-    const focusablesSel =
-      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
     let lastFocus = null;
 
-    // 🔥 Make sure drawer actually hides/shows even if your CSS is still old
-    // (so you’re not stuck on the #menu:target system)
-    const forceBaseStyles = () => {
-      // If your CSS already handles it, these won’t hurt.
-      drawer.style.display = drawer.classList.contains("is-open") ? "block" : "none";
-    };
+    const isOpen = () => drawer.classList.contains("is-open");
 
     const setOpen = (open) => {
       drawer.classList.toggle("is-open", open);
       drawer.setAttribute("aria-hidden", open ? "false" : "true");
-      openBtn.setAttribute("aria-expanded", open ? "true" : "false");
 
-      // iOS scroll lock
+      // ARIA expanded (if button exists)
+      if (openBtnNew) openBtnNew.setAttribute("aria-expanded", open ? "true" : "false");
+
+      // scroll lock (iOS)
       document.body.style.overflow = open ? "hidden" : "";
 
-      forceBaseStyles();
+      // If your CSS still relies on :target, this still makes it work visually
+      drawer.style.display = open ? "block" : "none";
 
       if (open) {
         lastFocus = document.activeElement;
-        // focus close button first
         setTimeout(() => closeBtn.focus?.(), 0);
       } else {
         lastFocus?.focus?.();
       }
     };
 
-    // ✅ open / close
-    openBtn.addEventListener("click", () => setOpen(true));
-    closeBtn.addEventListener("click", () => setOpen(false));
+    // Initial state
+    setOpen(false);
 
-    // ✅ click outside panel closes
-    drawer.addEventListener("click", (e) => {
-      if (!panel) return;
-      if (!panel.contains(e.target)) setOpen(false);
+    // Open click (works for button OR old anchor)
+    openBtn.addEventListener("click", (e) => {
+      // prevent old anchor jumping the page to #menu
+      if (openBtn === openBtnOld) e.preventDefault();
+      setOpen(true);
     });
 
-    // ✅ any link inside closes
+    // Close click
+    closeBtn.addEventListener("click", (e) => {
+      // prevent old anchor "#" jump
+      if (closeBtn === closeBtnOld) e.preventDefault();
+      setOpen(false);
+    });
+
+    // Click outside panel closes
+    drawer.addEventListener("click", (e) => {
+      if (panel && !panel.contains(e.target)) setOpen(false);
+    });
+
+    // Any link inside closes
     drawer.addEventListener("click", (e) => {
       const a = e.target.closest("a");
       if (a) setOpen(false);
     });
 
-    // ✅ ESC closes
+    // ESC closes
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && drawer.classList.contains("is-open")) setOpen(false);
+      if (e.key === "Escape" && isOpen()) setOpen(false);
     });
 
-    // ✅ trap focus (so it feels like a real drawer)
+    // Focus trap (simple)
     document.addEventListener("keydown", (e) => {
-      if (!drawer.classList.contains("is-open")) return;
-      if (e.key !== "Tab") return;
+      if (!isOpen() || e.key !== "Tab") return;
 
-      const focusables = $$(focusablesSel, drawer);
+      const focusables = $$(
+        'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])',
+        drawer
+      );
       if (!focusables.length) return;
 
       const first = focusables[0];
@@ -197,20 +215,8 @@ console.log("✅ script.js loaded");
       }
     });
 
-    // ✅ close drawer if user rotates / resizes to desktop
-    window.addEventListener("resize", () => {
-      if (window.innerWidth > 900 && drawer.classList.contains("is-open")) setOpen(false);
-    });
-
-    // ✅ cookie settings button inside drawer
-    $("#openCookieSettingsMobile")?.addEventListener("click", (e) => {
-      e.preventDefault();
-      setOpen(false);
-      document.querySelector('[data-cookie="manage"]')?.click();
-    });
-
-    // initial state
-    setOpen(false);
+    // If you had old :target in URL, remove it so it doesn't fight JS
+    if (location.hash === "#menu") history.replaceState(null, "", location.pathname + location.search);
   }
 
   // =========================
@@ -721,3 +727,4 @@ console.log("✅ script.js loaded");
     });
   }
 })();
+
