@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" id="top">
 <head>
@@ -18,31 +17,8 @@
   <!-- External CSS -->
   <link rel="stylesheet" href="./styles.css">
 
-  <!-- ✅ Minimal FIXES (Dropdown + Reviews Dark Patch only) -->
+  <!-- ✅ Minimal FIXES (Dropdown + small semantics polish) -->
   <style>
-    @media (prefers-color-scheme: dark){
-      #reviews.section{
-        background: #0b0f16 !important;
-        color: #f9fafb !important;
-      }
-      #reviews .section-title{ color: #f9fafb !important; }
-      #reviews .section-subtitle{ color: rgba(249,250,251,.75) !important; }
-      #reviews .reviews-grid .card{
-        background: rgba(255,255,255,.06) !important;
-        border: 1px solid rgba(255,255,255,.12) !important;
-        box-shadow: 0 18px 45px rgba(0,0,0,.45) !important;
-      }
-      #reviews .reviews-grid .card *{
-        color: #f9fafb !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-        filter: none !important;
-        mix-blend-mode: normal !important;
-        -webkit-text-fill-color: #f9fafb !important;
-      }
-      #reviews .review-location{ color: rgba(249,250,251,.72) !important; }
-    }
-
     /* =========================
        ✅ FIX: "More" dropdown is vertical + hidden until open
        ========================= */
@@ -53,6 +29,24 @@
       cursor: pointer;
     }
     details.nav-drop > summary::-webkit-details-marker{ display:none; }
+
+    /* Added: make summary look like your nav links */
+    .nav-drop__btn{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 10px;
+      border-radius: 12px;
+      font-weight: 900;
+      color: var(--text);
+      opacity: .9;
+      user-select: none;
+    }
+    .nav-drop__btn:hover{
+      opacity: 1;
+      background: var(--glass-2);
+      transform: translateY(-1px);
+    }
 
     .nav-drop__menu{
       list-style: none;
@@ -94,11 +88,17 @@
     .nav-drop__menu a:hover{
       background: rgba(231,179,194,0.10);
     }
+
+    /* Address semantic fix: prevent default italic look */
+    .footer address,
+    .footer address p{
+      font-style: normal;
+    }
   </style>
 </head>
 
 <body>
-  <a class="skip-link" href="#services">Skip to content</a>
+  <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- =========================
        TOP NAVBAR
@@ -666,7 +666,7 @@
 
             <article class="slide">
               <div class="slide__media">
-                <img src="images/nails-1.jpg" alt="Soft nude nails with glossy finish">
+                <img src="./images/nails-1.jpg" alt="Soft nude nails with glossy finish">
               </div>
               <div class="slide__content">
                 <p class="slide__tag">Fun fact</p>
@@ -678,7 +678,7 @@
 
             <article class="slide">
               <div class="slide__media">
-                <img src="images/nails-2.jpg" alt="French tip nails">
+                <img src="./images/nails-2.jpg" alt="French tip nails">
               </div>
               <div class="slide__content">
                 <p class="slide__tag">Nail art tip</p>
@@ -690,7 +690,7 @@
 
             <article class="slide">
               <div class="slide__media">
-                <img src="images/nails-3.jpg" alt="Chrome nails">
+                <img src="./images/nails-3.jpg" alt="Chrome nails">
               </div>
               <div class="slide__content">
                 <p class="slide__tag">Did you know?</p>
@@ -771,7 +771,7 @@
          ========================= -->
     <section class="booking-modal" id="booking-form" aria-labelledby="booking-form-title">
       <div class="booking-panel">
-        <a class="modal-close" href="#services" aria-label="Close booking form">×</a>
+        <a class="modal-close" href="#" aria-label="Close booking form">×</a>
 
         <h2 id="booking-form-title" style="font-family:var(--font-display); letter-spacing:-0.02em;">Request an appointment</h2>
         <p class="section-subtitle">Pick a service + date, then choose from the available time slots.</p>
@@ -843,7 +843,7 @@
 
   </main>
 
-    <!-- =========================
+  <!-- =========================
        FOOTER
        ========================= -->
   <footer class="footer">
@@ -900,7 +900,6 @@
 
     </div>
 
-    <!-- ✅ Footer bottom bar (THIS is the aesthetic part) -->
     <div class="footer-bottom">
       <span class="footer-copy">© 2026 Luxury Nail Studio</span>
 
@@ -909,7 +908,6 @@
       </span>
     </div>
   </footer>
-
 
   <!-- =========================
        AUTH MODAL
@@ -985,7 +983,6 @@
 
   <!-- =========================
        COOKIE BANNER + SETTINGS
-       ✅ Matches your script.js cookieInit() (data-cookie attrs)
        ========================= -->
   <div class="cookie" id="cookieBanner" role="dialog" aria-modal="true" aria-labelledby="cookieTitle" aria-describedby="cookieDesc">
     <div class="cookie__card">
@@ -1074,5 +1071,12 @@
       }
     });
   </script>
+
+  <!-- Optional noscript fallback -->
+  <noscript>
+    <style>
+      #cookieBanner{ display:block !important; }
+    </style>
+  </noscript>
 </body>
 </html>
