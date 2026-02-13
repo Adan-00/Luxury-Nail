@@ -1051,27 +1051,6 @@
   <!-- External JS -->
   <script src="script.js" defer></script>
 
-  <!-- ✅ Tiny helper: close More when click outside + open cookie settings from footer/mobile -->
-  <script>
-    document.addEventListener("click", (e) => {
-      // Close "More" dropdown when clicking outside
-      const moreMenu = document.getElementById("moreMenu");
-      if (moreMenu && moreMenu.open && !moreMenu.contains(e.target)) {
-        moreMenu.removeAttribute("open");
-      }
-
-      // Open cookie settings from footer/mobile links
-      const t = e.target;
-      if (!t) return;
-
-      if (t.id === "openCookieSettings" || t.id === "openCookieSettingsMobile") {
-        e.preventDefault();
-        const manageBtn = document.querySelector('[data-cookie="manage"]');
-        manageBtn?.click();
-      }
-    });
-  </script>
-
   <!-- Optional noscript fallback -->
   <noscript>
     <style>
