@@ -48,6 +48,9 @@ console.log("✅ script.js loaded");
     sliderInit();
     cookieInit();
     lightboxInit();
+
+    // ✅ NEW: open ALL .card elements
+    cardOpenAllInit();
   });
 
   // =========================
@@ -113,7 +116,7 @@ console.log("✅ script.js loaded");
     });
   }
 
-    // =========================
+  // =========================
   // ✅ MOBILE MENU DRAWER (supports OLD + NEW HTML)
   // =========================
   function mobileMenuInit() {
@@ -652,7 +655,7 @@ console.log("✅ script.js loaded");
 
     // footer manage cookies (if you have it)
     document.addEventListener("click", (e) => {
-      const t = e.target.closest("#openCookieSettings");
+      const t = e.target.closest("#openCookieSettings, #openCookieSettingsMobile");
       if (!t) return;
       e.preventDefault();
       openModal();
@@ -686,13 +689,17 @@ console.log("✅ script.js loaded");
       img.alt = alt;
       title.textContent = t;
 
+      // IMPORTANT: your CSS might use either .open or .is-open — support both
       lightbox.classList.add("open");
+      lightbox.classList.add("is-open");
+
       lightbox.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
     };
 
     const close = () => {
       lightbox.classList.remove("open");
+      lightbox.classList.remove("is-open");
       lightbox.setAttribute("aria-hidden", "true");
       document.body.style.overflow = "";
     };
@@ -720,11 +727,127 @@ console.log("✅ script.js loaded");
     });
 
     document.addEventListener("keydown", (e) => {
-      if (!lightbox.classList.contains("open")) return;
+      const openNow = lightbox.classList.contains("open") || lightbox.classList.contains("is-open");
+      if (!openNow) return;
+
       if (e.key === "Escape") close();
       if (e.key === "ArrowLeft") prev();
       if (e.key === "ArrowRight") next();
     });
   }
-})();
 
+  // =========================
+  // ✅ NEW: OPEN ALL CARDS (modal)
+  // =========================
+  function cardOpenAllInit() {
+    // Inject CSS (no need to edit styles.css)
+    if (!$("#_cardModalCSS")) {
+      const style = document.createElement("style");
+      style.id = "_cardModalCSS";
+      style.textContent = `
+.card-modal{position:fixed;inset:0;display:none;z-index:99999}
+.card-modal.is-open{display:grid;place-items:center;padding:18px}
+.card-modal__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px)}
+.card-modal__panel{position:relative;width:min(920px,100%);max-height:min(82vh,760px);overflow:auto;border-radius:22px;padding:18px;background:var(--surface,#fff);border:1px solid rgba(17,24,39,.12);box-shadow:0 30px 80px rgba(0,0,0,.35)}
+@media (prefers-color-scheme:dark){.card-modal__panel{background:var(--surface,#0b0b10);border-color:rgba(255,255,255,.10)}}
+.card-modal__close{position:sticky;top:0;margin-left:auto;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:1px solid rgba(17,24,39,.12);background:rgba(255,255,255,.75);cursor:pointer;font-size:22px;line-height:1}
+@media (prefers-color-scheme:dark){.card-modal__close{background:rgba(18,18,26,.75);border-color:rgba(255,255,255,.10)}}
+.card-modal__content{padding:10px 4px 4px}
+.card[data-card-open="true"]{cursor:pointer;transition:transform 160ms ease, box-shadow 160ms ease}
+.card[data-card-open="true"]:hover{transform:translateY(-2px)}
+`;
+      document.head.appendChild(style);
+    }
+
+    // Create modal once
+    let modal = $("#cardModal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "cardModal";
+      modal.className = "card-modal";
+      modal.setAttribute("aria-hidden", "true");
+      modal.innerHTML = `
+        <div class="card-modal__backdrop" data-card-close></div>
+        <div class="card-modal__panel" role="dialog" aria-modal="true" aria-label="Card details">
+          <button class="card-modal__close" type="button" aria-label="Close" data-card-close>×</button>
+          <div class="card-modal__content" id="cardModalContent"></div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    const content = $("#cardModalContent", modal);
+    const closeEls = $$("[data-card-close]", modal);
+
+    let lastFocus = null;
+
+    const openModal = (clone, focusEl) => {
+      lastFocus = focusEl || document.activeElement;
+      content.innerHTML = "";
+      content.appendChild(clone);
+
+      modal.classList.add("is-open");
+      modal.setAttribute("aria-hidden", "false");
+      document.documentElement.style.overflow = "hidden";
+      modal.querySelector(".card-modal__close")?.focus();
+    };
+
+    const closeModal = () => {
+      modal.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+      content.innerHTML = "";
+      document.documentElement.style.overflow = "";
+      lastFocus?.focus?.();
+    };
+
+    closeEls.forEach((el) => el.addEventListener("click", closeModal));
+
+    // ESC closes
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
+    });
+
+    const shouldIgnoreClick = (target) => {
+      // allow normal actions inside card
+      return !!target.closest("a, button, summary, input, select, textarea, label");
+    };
+
+    // ALL cards, but not inside modals/drawers
+    const allCards = $$(".card").filter((c) => {
+      if (c.closest("#cardModal")) return false;
+      if (c.closest(".booking-modal")) return false;
+      if (c.closest(".auth-modal")) return false;
+      if (c.closest(".cookie-modal")) return false;
+      if (c.closest(".menu-drawer")) return false;
+      return true;
+    });
+
+    allCards.forEach((card) => {
+      card.dataset.cardOpen = "true";
+      if (!card.hasAttribute("tabindex")) card.setAttribute("tabindex", "0");
+      if (!card.getAttribute("role")) card.setAttribute("role", "button");
+
+      const label =
+        card.querySelector("h3,h4,strong")?.textContent?.trim() || "Open details";
+      card.setAttribute("aria-label", label);
+
+      const openFromCard = (e) => {
+        if (shouldIgnoreClick(e.target)) return;
+
+        const clone = card.cloneNode(true);
+        clone.classList.remove("reveal", "is-visible");
+        clone.querySelectorAll("[data-reveal]").forEach((n) => n.removeAttribute("data-reveal"));
+
+        openModal(clone, card);
+      };
+
+      card.addEventListener("click", openFromCard);
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openFromCard(e);
+        }
+      });
+    });
+  }
+})();
